@@ -156,7 +156,7 @@ class Trajet :
 		-------
 		La différence négative de distance entre avant et après le retrait du client.
 		"""
-		assert isinstance(indice, int) and 0 <= indice < self.nb_clients and self.nb_clients > 0
+		assert isinstance(indice, int) and 0 <= indice < self.nb_clients
 
 		client = self.clients[indice]
 		if self.nb_clients == 1 :
@@ -191,7 +191,7 @@ class Trajet :
 		-------
 		La différence de distance entre avant et après le remplacement du client.
 		"""
-		assert isinstance(nouveau, Client) and self.nb_clients > 0
+		assert isinstance(nouveau, Client)
 		assert isinstance(indice, int) and 0 <= indice < self.nb_clients
 
 		vieux = self.clients[indice]
