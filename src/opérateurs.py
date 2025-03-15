@@ -141,7 +141,7 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 	mini = 0
 	ind = None
 	trajets = flotte.trajets
-	for i, t in enumerate(trajets) :
+	for i, t1 in enumerate(trajets) :
 		for x, t2 in enumerate(trajets[i:]) :
 			if x == 0 :
 				min_tmp, ind_tmp = intra_exchange(trajets[i])
@@ -149,10 +149,10 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 					ind = ((i, ind_tmp[0]), (i, ind_tmp[1]))
 					mini = min_tmp
 			else :
-				for j, c in enumerate(t.clients) :
+				for j, c1 in enumerate(t1.clients) :
 					for y, c2 in enumerate(t2.clients) :
-						if t.marchandise - c.demande + c2.demande <= flotte.capacite and t2.marchandise - c2.demande + c.demande <= flotte.capacite :
-							tmp = t.dist_remplacer_client(j, c2) + t2.dist_remplacer_client(y, c)
+						if t1.marchandise - c1.demande + c2.demande <= flotte.capacite and t2.marchandise - c2.demande + c1.demande <= flotte.capacite :
+							tmp = t1.dist_remplacer_client(j, c2) + t2.dist_remplacer_client(y, c1)
 							if tmp < mini :
 								mini = tmp
 								ind = ((i, j), (x+i, y))
@@ -161,77 +161,133 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 
 
 
-def cross_exchange(flotte :Flotte) -> tuple :
+def cross_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int, int], tuple[int, int, int]]] :
 	"""
 	Calcule et renvoie un tuple avec des informations sur la flotte avec la plus courte longueur 
-	après une itération de exchange.
+	après une itération de cross-exchange.
 
 	Paramètres
 	----------
 	flotte : Flotte
-		Flotte sur laquelle est appliqué l'opérateur exchange.
+		Flotte sur laquelle est appliqué l'opérateur cross-exchange.
 
 	Renvoie
 	-------
 	La différence de longueur entre la nouvelle flotte et l'ancienne, et 
-	un tuple de 2 tuples (indice trajet, indice client) contenant les positions des clients échangés.
+	un tuple de 2 tuples (indice trajet, indice premier client, indice dernier client) contenant les positions des clients échangés.
 	"""
 	assert isinstance(flotte, Flotte)
 
 	mini = 0
 	ind = None
 	trajets = flotte.trajets
-	for i, t in enumerate(trajets) :
-		for x, t2 in enumerate(trajets[i:]) :#islice(trajets, i, len(trajets))) :
-			if x == 0:
-				#print("Intra exchange : ")
-				min_tmp, ind_tmp = intra_exchange(trajets[i])
-				#if ind_tmp != None and min_tmp <= mini: 
-				if min_tmp < mini: 
-					ind = ((i, ind_tmp[0]), (i, ind_tmp[1]))
-					mini = min_tmp
-			else:
-				#print("Inter exchange : ")
-				for j, c in enumerate(t.clients):
-					for y, c2 in enumerate(t2.clients) :
-						if t.marchandise - c.demande + c2.demande <= flotte.capacite and t2.marchandise - c2.demande + c.demande <= flotte.capacite :
-							tmp = t.dist_remplacer_client(j, c2) + t2.dist_remplacer_client(y, c)
-							#if tmp <= mini:
-							if tmp < mini :
-								#print("Indices : ", ind, " ; Mini : ", mini, " ; tmp : ", tmp)
-								mini = tmp
-								ind = ((i, j), (x+i, y))
+	for i, t1 in enumerate(trajets) :
+		nb1 = t1.nb_clients
+		clients1 = t1.clients
+		for j in range(nb1-1) :
+			for k in range(j+1, nb1) :
+				tab_cli1 = t1.info_tab_clients(j, k)
+				for x, t2 in enumerate(trajets[i+1:]) :
+					nb2 = t2.nb_clients
+					clients2 = t2.clients
+					for y in range(nb2-1) :
+						for z in range(y+1, nb2) :
+							tab_cli2 = t2.info_tab_clients(y, z)
+							if t1.marchandise - tab_cli1[1] + tab_cli2[1] <= flotte.capacite and t2.marchandise - tab_cli2[1] + tab_cli1[1] <= flotte.capacite :
+								tmp = t1.dist_remplacer_tab_client(j, k, clients2[y], clients2[z], tab_cli2[0])
+								tmp += t2.dist_remplacer_tab_client(y, z, clients1[j], clients1[k], tab_cli1[0])
+								if tmp < mini :
+									mini = tmp
+									ind = ((i, j, k), (x+i+1, y, z))
+	
 	return (mini, ind)
 
 
 
-def effectuer_changements(flotte :Flotte, new_dist :float, indice :tuple[tuple[int, int], tuple[int, int]], action :int) :
+def effectuer_relocate(flotte :Flotte, new_dist :float, indice :tuple[tuple[int, int], tuple[int, int]]) :
 	"""
-	Calcule et renvoie un tuple avec des informations sur la flotte avec la plus courte longueur 
-	après une itération de exchange.
+	Effectue les changements en appliquant l'opérateur relocate.
 	
 	Paramètres
 	----------
 	flotte : Flotte
-		Flotte sur laquelle est appliqué le changement 'action'.
+		Flotte sur laquelle est appliqué l'opérateur relocate.
 	new_dist : float
 		Différence de distance entre avant et après le changement.
 	indice : tuple[tuple[int, int], tuple[int, int]]
-		Indices des deux positions sur lesquelles le changements est effectué.
-	action : int
-		Opérateur utilisé pour le changement (1 = relocate, 2 = exchange).
+		Indices de la position initiale et finale.
 	"""
-	(i, j), (x, y) = indice
+	assert isinstance(flotte, Flotte)
+	assert isinstance(new_dist, float) and new_dist < 0
+	assert isinstance(indice, tuple)
+
 	trajets = flotte.trajets
 	flotte.longueur += new_dist
-	match action :
-		case 1 :
+	match indice :
+		case [[int(i), int(j)], [int(x), int(y)]] :
 			cli = trajets[i].retirer_client(j)
 			trajets[x].ajouter_client(y, cli)
 			if trajets[i].nb_clients == 0: flotte.retirer_trajet(i)
-		case 2 :
-			cli = trajets[i].clients[j]
+		case _ :
+			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
+
+
+
+def effectuer_exchange(flotte :Flotte, new_dist :float, indice :tuple[tuple[int, int], tuple[int, int]]) :
+	"""
+	Effectue les changements en appliquant l'opérateur exchange.
+	
+	Paramètres
+	----------
+	flotte : Flotte
+		Flotte sur laquelle est appliqué l'opérateur exchange.
+	new_dist : float
+		Différence de distance entre avant et après le changement.
+	indice : tuple[tuple[int, int], tuple[int, int]]
+		Indices des positions des clients à échanger.
+	"""
+	assert isinstance(flotte, Flotte)
+	assert isinstance(new_dist, float) and new_dist < 0
+	assert isinstance(indice, tuple)
+
+	trajets = flotte.trajets
+	flotte.longueur += new_dist
+	match indice :
+		case [[int(i), int(j)], [int(x), int(y)]] :
+			cli1 = trajets[i].clients[j]
 			cli2 = trajets[x].retirer_client(y)
-			trajets[x].ajouter_client(y, cli)
+			trajets[x].ajouter_client(y, cli1)
 			trajets[i].retirer_client(j)
 			trajets[i].ajouter_client(j, cli2)
+		case _ :
+			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
+
+
+
+def effectuer_cross_exchange(flotte :Flotte, new_dist :float, indice :tuple[tuple[int, int, int], tuple[int, int, int]]) :
+	"""
+	Effectue les changements en appliquant l'opérateur cross-exchange.
+	
+	Paramètres
+	----------
+	flotte : Flotte
+		Flotte sur laquelle est appliqué l'opérateur cross-exchange.
+	new_dist : float
+		Différence de distance entre avant et après le changement.
+	indice : tuple[tuple[int, int, int], tuple[int, int, int]]
+		Indices des positions des premiers et derniers clients des listes à échanger.
+	"""
+	assert isinstance(flotte, Flotte)
+	assert isinstance(new_dist, float) and new_dist < 0
+	assert isinstance(indice, tuple)
+
+	trajets = flotte.trajets
+	flotte.longueur += new_dist
+	match indice :
+		case [[int(i), int(j), int(k)], [int(x), int(y), int(z)]] :
+			tab_cli1 = trajets[i].retirer_tab_client(j, k)
+			tab_cli2 = trajets[x].retirer_tab_client(y, z)
+			trajets[x].ajouter_tab_client(y, tab_cli1)
+			trajets[i].ajouter_tab_client(j, tab_cli2)
+		case _ :
+			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
