@@ -22,6 +22,9 @@ class Client :
 	
 
 	def afficher(self) :
+		"""
+		Affiche les informations détaillées du client.
+		"""
 		x, y = self.pos
 		début, fin = self.intervalle_livraison
 		temps = self.temps_livraison
@@ -57,6 +60,16 @@ class Trajet :
 	
 	
 	def afficher(self, capacite :bool = False) :
+		"""
+		Affiche la longueur et le nombre de clients du trajet.
+		Affiche en plus la capacité si capacite = True, 
+		la liste ordonnée des clients du trajet sinon.
+
+		Paramètres
+		----------
+		capacite : bool
+			Booléen permettant de préciser l'affichage.
+		"""
 		long = self.longueur
 		nb = self.nb_clients
 		capa = self.marchandise
@@ -230,9 +243,8 @@ class Trajet :
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
 		assert 0 <= ind_debut < ind_fin < self.nb_clients
 
-		# return sum([distance(self.clients[i], self.clients[i+1]) for i in range(ind_debut, ind_fin)])
 		dist = 0
-		for i in range(ind_debut, ind_fin):
+		for i in range(ind_debut, ind_fin) :
 			dist += distance(self.clients[i], self.clients[i+1])
 		
 		return dist
@@ -299,7 +311,7 @@ class Trajet :
 		assert 0 <= ind_debut < ind_fin < self.nb_clients
 
 		dist_tab_clients = self.dist_tab_clients(ind_debut, ind_fin)
-		cli0 = self.depot if ind_debut == 0 				else self.clients[ind_debut-1]
+		cli0 = self.depot if ind_debut == 0                 else self.clients[ind_debut-1]
 		cli1 = self.depot if ind_fin == self.nb_clients - 1 else self.clients[ind_fin+1]
 
 		return distance(cli0, cli1) - distance(cli0, self.clients[ind_debut]) - distance(self.clients[ind_fin], cli1) - dist_tab_clients
@@ -326,6 +338,16 @@ class Flotte :
 
 
 	def afficher(self, capacite :bool = False) :
+		"""
+		Affiche la flotte (la longueur et le nombre de camions), et tous les trajets qui la compose.
+		Affiche, pour les trajets, la capacité si capacite = True, 
+		la liste ordonnée des clients du trajet sinon.
+
+		Paramètres
+		----------
+		capacite : bool
+			Booléen permettant de préciser l'affichage.
+		"""
 		print(self)
 		for t in self.trajets:
 			t.afficher(capacite)

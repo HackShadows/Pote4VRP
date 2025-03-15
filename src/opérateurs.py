@@ -1,8 +1,5 @@
 from classes import Flotte, Trajet, distance
 
-from itertools import islice
-
-
 
 
 
@@ -23,30 +20,22 @@ def intra_relocate(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 	"""
 	assert isinstance(trajet, Trajet)
 
-	lg = trajet.longueur
 	nb = trajet.nb_clients
-	mini = trajet.longueur
+	mini = 0
 	ind = None
+	
 	for i in range(nb) :
-		#TODO: pas besoin d'appeler retirer et ajouter, on peut garder une trace de la longeur du trajet avec lg
-		cli = trajet.retirer_client(i)
-		tmp = trajet.longueur
-		#TODO: plus rapide ?
-		# j, m = min(enumerate(map(trajet.dist_ajouter_client, range(nb), cli)), key=lambda v: v[1])
-		# if m < mini :
-		# 	mini = m
-		# 	ind = (i, j)
+		cli = trajet.clients[i]
+		dist_tmp = trajet.dist_retirer_client(i)
 		for j in range(nb) :
 			if i == j : continue
 
-			tmp2 = tmp + trajet.dist_ajouter_client(j, cli)
-			#if tmp2 <= mini and j != i:
-			if tmp2 < mini:
-				#print("Indices : ", ind, " ; Mini : ", mini, " ; tmp : ", tmp2)
-				mini = tmp2
+			dist_tmp += trajet.dist_ajouter_client(j, cli)
+			if dist_tmp < mini:
+				mini = dist_tmp
 				ind = (i, j)
-		trajet.ajouter_client(i, cli)
-	return (mini - lg, ind)
+	
+	return (mini, ind)
 
 
 
@@ -71,27 +60,23 @@ def inter_relocate(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 	mini = 0
 	ind = None
 	trajets = flotte.trajets
-	for i, t in enumerate(trajets) : #TODO: i et x ???, t et t2 ???
+	for i, t1 in enumerate(trajets) :
 		for x, t2 in enumerate(trajets) :
 			if x == i :
-				#print("Intra relocate : ")
 				min_tmp, ind_tmp = intra_relocate(trajets[x])
-				#if ind_tmp != None and min_tmp <= mini: 
 				if min_tmp < mini : 
 					ind = ((i, ind_tmp[0]), (x, ind_tmp[1]))
 					mini = min_tmp
 			else :
-				#print("Inter relocate : ")
-				for j, c in enumerate(t.clients) :
-					tmp = t.dist_retirer_client(j)
+				for j, c in enumerate(t1.clients) :
+					tmp = t1.dist_retirer_client(j)
 					for y in range(t2.nb_clients+1) :
 						if t2.marchandise + c.demande <= flotte.capacite :
 							tmp2 = tmp + t2.dist_ajouter_client(y, c)
-							#if tmp2 <= mini:
 							if tmp2 < mini :
-								#print("Indices : ", ind, " ; Mini : ", mini, " ; tmp : ", tmp2)
 								mini = tmp2
 								ind = ((i, j), (x, y))
+	
 	return (mini, ind)
 
 
@@ -118,18 +103,19 @@ def intra_exchange(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 	ind = None
 	for i in range(nb-1) :
 		cli = trajet.clients[i]
+		
 		cli_tmp = trajet.clients[i+1]
 		tmp = trajet.dist_remplacer_client(i, cli_tmp) + trajet.dist_remplacer_client(i+1, cli) + 3*distance(cli, cli_tmp)
 		if tmp < mini :
 			mini = tmp
 			ind = (i, i+1)
+		
 		for j in range(i+2, nb) :
 			tmp = trajet.dist_remplacer_client(i, trajet.clients[j]) + trajet.dist_remplacer_client(j, cli)
-			#if tmp <= mini and j != i:
 			if tmp < mini :
-				#print("Indices : ", ind, " ; Mini : ", mini, " ; tmp : ", tmp)
 				mini = tmp
 				ind = (i, j)
+	
 	return (mini, ind)
 
 
@@ -155,30 +141,26 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 	ind = None
 	trajets = flotte.trajets
 	for i, t in enumerate(trajets) :
-		for x, t2 in enumerate(trajets[i:]) :#islice(trajets, i, len(trajets))) :
-			if x == 0:
-				#print("Intra exchange : ")
+		for x, t2 in enumerate(trajets[i:]) :
+			if x == 0 :
 				min_tmp, ind_tmp = intra_exchange(trajets[i])
-				#if ind_tmp != None and min_tmp <= mini: 
-				if min_tmp < mini: 
+				if min_tmp < mini : 
 					ind = ((i, ind_tmp[0]), (i, ind_tmp[1]))
 					mini = min_tmp
-			else:
-				#print("Inter exchange : ")
-				for j, c in enumerate(t.clients):
+			else :
+				for j, c in enumerate(t.clients) :
 					for y, c2 in enumerate(t2.clients) :
 						if t.marchandise - c.demande + c2.demande <= flotte.capacite and t2.marchandise - c2.demande + c.demande <= flotte.capacite :
 							tmp = t.dist_remplacer_client(j, c2) + t2.dist_remplacer_client(y, c)
-							#if tmp <= mini:
 							if tmp < mini :
-								#print("Indices : ", ind, " ; Mini : ", mini, " ; tmp : ", tmp)
 								mini = tmp
 								ind = ((i, j), (x+i, y))
+	
 	return (mini, ind)
 
 
 
-def cross_exchange(flotte :Flotte) -> tuple:
+def cross_exchange(flotte :Flotte) -> tuple :
 	"""
 	Calcule et renvoie un tuple avec des informations sur la flotte avec la plus courte longueur 
 	après une itération de exchange.
