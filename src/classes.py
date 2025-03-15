@@ -314,15 +314,15 @@ class Trajet :
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
 		assert 0 <= ind_debut < ind_fin < self.nb_clients
 
-		dist_tab_clients, = self.info_tab_clients(ind_debut, ind_fin)
+		infos = self.info_tab_clients(ind_debut, ind_fin)
 		cli0 = self.depot if ind_debut == 0                 else self.clients[ind_debut-1]
 		cli1 = self.depot if ind_fin == self.nb_clients - 1 else self.clients[ind_fin+1]
 
-		return distance(cli0, cli1) - distance(cli0, self.clients[ind_debut]) - distance(self.clients[ind_fin], cli1) - dist_tab_clients
+		return distance(cli0, cli1) - distance(cli0, self.clients[ind_debut]) - distance(self.clients[ind_fin], cli1) - infos[0]
 
 
 
-	def dist_remplacer_tab_client(self, ind_debut :int, ind_fin :int, cli_debut :Client, cli_fin :Client, lg_tab :int) -> float :
+	def dist_remplacer_tab_client(self, ind_debut :int, ind_fin :int, cli_debut :Client, cli_fin :Client, lg_tab :float) -> float :
 		"""
 		Calcule et renvoie la différence de distance entre avant et après le remplacement de la liste de clients.
 
@@ -337,7 +337,7 @@ class Trajet :
 		cli_fin : Client
 			Dernier client de la liste à ajouter.
 		lg_tab : int
-			Longueur du trajet entre le premier et le dernier client.
+			Longueur du trajet entre le premier et le dernier client à ajouter.
 
 		Renvoie
 		-------
@@ -345,7 +345,7 @@ class Trajet :
 		"""
 		assert isinstance(cli_debut, Client) and isinstance(cli_fin, Client)
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut < ind_fin < self.nb_clients
-		assert isinstance(lg_tab, int) and 0 < lg_tab
+		assert isinstance(lg_tab, float) and 0 < lg_tab
 
 		dist_retirer_tab_client = self.dist_retirer_tab_client(ind_debut, ind_fin)
 		cli0 = self.depot if ind_debut == 0                 else self.clients[ind_debut-1]
