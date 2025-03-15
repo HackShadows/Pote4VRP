@@ -1,5 +1,5 @@
 from classes import Flotte
-from opérateurs import inter_exchange, inter_relocate, effectuer_changements
+from opérateurs import inter_exchange, inter_relocate, cross_exchange, effectuer_relocate, effectuer_exchange, effectuer_cross_exchange
 import matplotlib.pyplot as plt
 import numpy as np
 import time as t
@@ -9,7 +9,7 @@ from random import randint
 
 
 
-def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, detail: bool = False):
+def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, detail :bool = False) :
 	"""
 	Calcule et affiche graphiquement les étapes pour arriver à la solution approximée.
 
@@ -22,11 +22,11 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 	detail : bool
 		Booléen permettant de spécifier si l'on souhaite un affichage détaillé.
 	"""
-	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte) and isinstance(detail, bool) and flotte.nb_trajets > 0
+	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte) and isinstance(detail, bool) and 0 < flotte.nb_trajets
 	for tu in pos_clients: assert isinstance(tu, tuple)
 	
 	t0 = t.time()
-	if detail: flotte.afficher(True)
+	if detail : flotte.afficher(True)
 	points = np.array(pos_clients)
 	pos_depot = np.array(flotte.trajets[0].depot.pos)
 	lg = round(flotte.longueur, 2)
@@ -47,14 +47,14 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 	text_nb = plt.text(0, max(pos_y)+8, "Nombre de camions : ")
 
 	# Ajout d'un curseur pour modifier dynamiquement la vitesse d'affichage
-	if detail:
+	if detail :
 		ax_slider = plt.axes([0.25 , 0.01 , 0.5 , 0.03])
 		slider_vit = Slider(ax_slider, "Vitesse", 0.02, 0.5, valinit = 0.02, valstep = 0.02)
 
 	# Stocker les lignes tracées
 	#lines = [ax.plot([], [], color=f'#{(1 if (i+1)%2 else 0)*randint(((255 if (i+1)%3 else 0)), 255):02x}{(1 if (i+1)%3 else 0)*randint(((255 if (i+1)%4 else 0)), 255):02x}{(1 if (i+1)%4 else 0)*randint(((255 if (i+1)%5 else 0)), 255):02x}', linewidth=2)[0] for i in range(3)]
 	lines = [ax.plot([], [], color=f'#{randint(0, 255):02x}{randint(0, 255):02x}{randint(0, 255):02x}', linewidth=2)[0] for _ in range(flotte.nb_trajets)]
-	def update(frame):
+	def update(frame) :
 		""" Met à jour toutes les lignes en même temps """
 		nb_iterations["nb"] += 1
 
@@ -64,20 +64,36 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 
 		exchange = inter_exchange(flotte)
 		relocate = inter_relocate(flotte)
-		if exchange[1] == None:
-			if relocate[1] == None: ani_container["ani"].event_source.stop()
-			else: effectuer_changements(flotte, relocate[0], relocate[1], 1)
-		elif relocate[1] == None: effectuer_changements(flotte, exchange[0], exchange[1], 2)
-		else:
-			if relocate[0] < exchange[0]: effectuer_changements(flotte, relocate[0], relocate[1], 1) 
-			else: effectuer_changements(flotte, exchange[0], exchange[1], 2)
+		cross_exch = cross_exchange(flotte)
+		match [relocate[1], exchange[1], cross_exch[1]] :
+			case [None, None, None] :
+				ani_container["ani"].event_source.stop()
+			case [ind_relocate, None, None] :
+				effectuer_relocate(flotte, relocate[0], ind_relocate)
+			case [None, ind_exchange, None] :
+				effectuer_exchange(flotte, exchange[0], ind_exchange)
+			case [None, None, ind_cross_exch] :
+				effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [ind_relocate, ind_exchange, None] :
+				if relocate[0] < exchange[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				else : effectuer_exchange(flotte, exchange[0], ind_exchange)
+			case [ind_relocate, None, ind_cross_exch] :
+				if relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [None, ind_exchange, ind_cross_exch] :
+				if exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [ind_relocate, ind_exchange, ind_cross_exch] :
+				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
 
 		trajets = flotte.trajets
-		for i, line in enumerate(lines):
-			if i < flotte.nb_trajets:
+		for i, line in enumerate(lines) :
+			if i < flotte.nb_trajets :
 				pos_cli = np.array([pos_depot] + [cli.pos for cli in trajets[i].clients] + [pos_depot])
 				line.set_data(pos_cli[:,0], pos_cli[:,1])  # Mise à jour progressive
-			else:
+			else :
 				line.set_data([], [])  # Mise à jour progressive
 		
 
@@ -87,10 +103,10 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 	ani_container = {"ani": None}  # L'animation sera définie dans une fonction
 
 	# Création de l'animation
-	if not detail:
+	if not detail :
 		ani_container["ani"] = FuncAnimation(fig, update, frames=1000, interval=20, blit=True, repeat=False)
 
-	def start_animation(interval):
+	def start_animation(interval) :
 		"""Crée et démarre l'animation avec l'intervalle spécifié"""
 		if ani_container["ani"] is not None:  # Si une animation existe déjà, on la stoppe
 			ani_container["ani"].event_source.stop()
@@ -99,7 +115,7 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 		fig.canvas.draw_idle()  # Redessiner la figure
 
 	# Fonction pour mettre à jour la vitesse et relancer l'animation
-	def update_speed(val):
+	def update_speed(val) :
 		new_interval = int(1000 * slider_vit.val)  # Convertir la vitesse en intervalle
 		start_animation(new_interval)  # Relancer l'animation avec la nouvelle vitesse
 
@@ -114,17 +130,17 @@ def affichage_graphique(pos_clients: list[tuple[int, int]], flotte: Flotte, deta
 	print(f"\nLongueur initiale : {lg}km")
 	print(f"Longueur finale : {round(flotte.longueur, 2)}km\n")
 
-	if detail: flotte.afficher(True)
+	if detail : flotte.afficher(True)
 
 	t1 = t.time() - t0
 	print("\nTemps d'éxecution : ", end="")
-	if t1 < 1: print(round(t1*1000), "ms")
-	else: print(round(t1, 2), "s")
+	if t1 < 1 : print(round(t1*1000), "ms")
+	else : print(round(t1, 2), "s")
 
 
 
 
-def affichage_console(flotte: Flotte, detail: bool = False):
+def affichage_console(flotte :Flotte, detail :bool = False) :
 	"""
 	Calcule et affiche en console la solution approximée.
 
@@ -142,24 +158,40 @@ def affichage_console(flotte: Flotte, detail: bool = False):
 	continuer = True
 	lg = round(flotte.longueur, 2)
 
-	while continuer and it < 200:
+	while continuer and it < 200 :
 		exchange = inter_exchange(flotte)
 		relocate = inter_relocate(flotte)
-		if exchange[1] == None:
-			if relocate[1] == None: continuer = False
-			else: effectuer_changements(flotte, relocate[0], relocate[1], 1)
-		elif relocate[1] == None: effectuer_changements(flotte, exchange[0], exchange[1], 2)
-		else:
-			if relocate[0] < exchange[0]: effectuer_changements(flotte, relocate[0], relocate[1], 1)
-			else: effectuer_changements(flotte, exchange[0], exchange[1], 2)
+		cross_exch = cross_exchange(flotte)
+		match [relocate[1], exchange[1], cross_exch[1]] :
+			case [None, None, None] :
+				continuer = False
+			case [ind_relocate, None, None] :
+				effectuer_relocate(flotte, relocate[0], ind_relocate)
+			case [None, ind_exchange, None] :
+				effectuer_exchange(flotte, exchange[0], ind_exchange)
+			case [None, None, ind_cross_exch] :
+				effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [ind_relocate, ind_exchange, None] :
+				if relocate[0] < exchange[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				else : effectuer_exchange(flotte, exchange[0], ind_exchange)
+			case [ind_relocate, None, ind_cross_exch] :
+				if relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [None, ind_exchange, ind_cross_exch] :
+				if exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+			case [ind_relocate, ind_exchange, ind_cross_exch] :
+				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
+				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
+				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
 		it += 1
 	
 	print(f"\nLongueur initiale : {lg}km")
 	print(f"Longueur finale : {round(flotte.longueur, 2)}km\n")
 
-	if detail: flotte.afficher(True)
+	if detail : flotte.afficher(True)
 	
 	print(f"\n{it} itérations")
 	print("Temps d'éxecution : ", end="")
-	if t.time() - t0 < 1: print(round((t.time() - t0)*1000), "ms")
-	else: print(round(t.time() - t0, 2), "s")
+	if t.time() - t0 < 1 : print(round((t.time() - t0)*1000), "ms")
+	else : print(round(t.time() - t0, 2), "s")
