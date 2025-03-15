@@ -27,13 +27,14 @@ def intra_relocate(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 	for i in range(nb) :
 		cli = trajet.clients[i]
 		dist_tmp = trajet.dist_retirer_client(i)
-		for j in range(nb) :
-			if i == j : continue
+		for j in range(nb+1) :
+			if j == i or j == i+1 : continue
 
-			dist_tmp += trajet.dist_ajouter_client(j, cli)
-			if dist_tmp < mini:
+			dist_tmp2 = dist_tmp + trajet.dist_ajouter_client(j, cli)
+
+			if dist_tmp2 < mini:
 				mini = dist_tmp
-				ind = (i, j)
+				ind = (i, j if j < i else j-1)
 	
 	return (mini, ind)
 
