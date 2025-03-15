@@ -24,7 +24,7 @@ def approximation_solution(fichier :str, mode :int = 1) :
 	----------
 	fichier : str
 		Chemin du fichier vrp contenant les informations sur les clients à livrer.
-		Ex : data/data101.vrp
+		Ex : data/in/data101.vrp
 	mode : int
 		Entier permettant de spécifier l'affichage désiré.
 		Affichage console (0), Affichage graphique (1), 
@@ -80,7 +80,7 @@ def main_dev() :
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
 	num = fichiers[0]
-	approximation_solution(f"data/data{num}.vrp", CONSOLE)
+	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
 
 
 
