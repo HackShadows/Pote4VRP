@@ -6,23 +6,62 @@
 	<link href="static/css/style.css" rel="stylesheet">
 </head>
 <body>
+
+
+
 	<header>
 		<h1>Vehicule Routing Problem</h1>
-		<button id="bouton-aide">
-			<svg></svg>
+		<button id="bouton-aide" onclick="document.getElementById('page-aide').style.display='flex'">
+			<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 16 16">
+				<path fill="currentColor" d="M8 0c4.42 0 8 3.58 8 8s-3.58 8-8 8s-8-3.58-8-8s3.58-8 8-8m0 1C4.13 1 1 4.13 1 8s3.13 7 7 7s7-3.13 7-7s-3.13-7-7-7m0 10.2a.75.75 0 1 1 0 1.5a.75.75 0 0 1 0-1.5m0-8.25a2.5 2.5 0 0 1 2.5 2.5c0 .523-.167.923-.423 1.24a3 3 0 0 1-.624.561l-.167.117c-.262.182-.451.317-.586.483a.88.88 0 0 0-.2.598v1a.5.5 0 0 1-1 0v-1c0-.519.168-.916.425-1.23c.185-.226.413-.404.616-.55l.173-.12c.26-.182.449-.318.584-.486A.9.9 0 0 0 9.5 5.45a1.5 1.5 0 0 0-3 0a.5.5 0 0 1-1 0A2.5 2.5 0 0 1 8 2.95"/>
+			</svg>
 		</button>
 	</header>
 
+
+
+
+
 	<main>
+
+
 		<form>
-			<input type="file">
+			<p>Sélectionnez les ensembles de données à optimiser :</p>
+			<label>
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+					<path fill="currentColor" d="M3 1h12.414L21 6.586V12h-2V9h-6V3H5v18h7v2H3V1Zm12 2.414V7h3.586L15 3.414ZM20 14v4h4v2h-4v4h-2v-4h-4v-2h4v-4h2Z"/>
+				</svg>
+				Choisissez le fichier
+				<input id="input-file" type="file">
+			</label>
+			<div>
+				<p>ou glissez-déposez ici</p>
+				<svg xmlns="http://www.w3.org/2000/svg" width="30" height="30" viewBox="0 0 512 512">
+					<path fill="currentColor" fill-rule="evenodd" d="M277.333 128H320V42.667H42.667V320H128v-42.667H85.333v-192h192zM192 181.333h-10.667V192h-32v-42.667H192zm-42.667 53.334v42.666h32v-42.666zm0 128V320h32v42.667zM416 320v42.667h32V320zm32-42.667h-32v-42.666h32zm-170.667-128h-42.666v32h42.666zm42.667 0h42.667v32H320zM277.333 448v-32h-42.666v32zM320 416h42.667v32H320zm-138.667 0v-10.667h-32V448H192v-32zM416 181.333V192h32v-42.667h-42.667v32zM416 416h-10.667v32H448v-42.667h-32zm-74.225-181.333L298.667 192L256 234.667zm-43.108 170.666L256 362.667h85.775zm-64-149.333L192 298.667l42.667 42.666zm170.666 42.667l-42.666 42.666V256z" clip-rule="evenodd"/>
+				</svg>
+			</div>
 		</form>
-		<div id="page-aide"><div>
-				<h1>A quoi sert cette app ?</h1>
-				<p>
-					[Explication longue et bien]
-				</p>
+
+
+
+		<div id="page-aide" style="display:none"><div>
+			<button onclick="document.getElementById('page-aide').style.display='none'">
+				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+					<path fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5" d="m7.757 16.243l8.486-8.486m0 8.486L7.757 7.757M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10"/>
+				</svg>
+			</button>
+
+
+			<h1>A quoi sert cette app ?</h1>
+			<p>
+				[Explication longue et bien]
+			</p>
 		</div></div>
+
+
 	</main>
+
+
+
 </body>
 </html>
