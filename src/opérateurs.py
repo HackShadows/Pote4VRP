@@ -192,6 +192,7 @@ def cross_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int, int], t
 					clients2 = t2.clients
 					for y in range(nb2-1) :
 						for z in range(y+1, nb2) :
+							if j == y == 0 and k == nb1 - 1 and z == nb2 - 1: continue
 							tab_cli2 = t2.info_tab_clients(y, z)
 							if t1.marchandise - tab_cli1[1] + tab_cli2[1] <= flotte.capacite and t2.marchandise - tab_cli2[1] + tab_cli1[1] <= flotte.capacite :
 								tmp = t1.dist_remplacer_tab_client(j, k, clients2[y], clients2[z], tab_cli2[0])
