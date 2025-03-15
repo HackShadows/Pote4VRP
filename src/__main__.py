@@ -37,7 +37,7 @@ def approximation_solution(fichier :str, mode :int = 1) :
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
 	fichier_in  = Path(fichier)
-	fichier_out = Path(fichier_in.parent, f"out_{fichier_in.name}")
+	fichier_out = fichier_in.parent.parent / "out" / fichier_in.name
 
 
 	métadonnées, dépôts, clients = fio.importer_vrp(fichier_in)
