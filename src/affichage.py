@@ -148,11 +148,10 @@ def affichage_console(flotte: Flotte, detail: bool = False):
 		if exchange[1] == None:
 			if relocate[1] == None: continuer = False
 			else: effectuer_changements(flotte, relocate[0], relocate[1], 1)
-			print("relocate")
-		elif relocate[1] == None: effectuer_changements(flotte, exchange[0], exchange[1], 2);print("exchange")
+		elif relocate[1] == None: effectuer_changements(flotte, exchange[0], exchange[1], 2)
 		else:
-			if relocate[0] < exchange[0]: effectuer_changements(flotte, relocate[0], relocate[1], 1);print("relocate")
-			else: effectuer_changements(flotte, exchange[0], exchange[1], 2);print("exchange")
+			if relocate[0] < exchange[0]: effectuer_changements(flotte, relocate[0], relocate[1], 1)
+			else: effectuer_changements(flotte, exchange[0], exchange[1], 2)
 		it += 1
 	
 	print(f"\nLongueur initiale : {lg}km")
