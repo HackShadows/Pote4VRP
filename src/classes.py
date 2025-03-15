@@ -212,6 +212,100 @@ class Trajet :
 
 
 
+	def dist_tab_clients(self, ind_debut :int, ind_fin :int) -> float :
+		"""
+		Calcule et renvoie la distance du trajet située entre les indices passés en paramètre.
+
+		Paramètres
+		----------
+		ind_debut : int
+			Indice du premier client.
+		ind_fin : int
+			Indice du dernier client.
+
+		Renvoie
+		-------
+		La distance du trajet situé entre le premier et le dernier client.
+		"""
+		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
+		assert 0 <= ind_debut < ind_fin < self.nb_clients
+
+		# return sum([distance(self.clients[i], self.clients[i+1]) for i in range(ind_debut, ind_fin)])
+		dist = 0
+		for i in range(ind_debut, ind_fin):
+			dist += distance(self.clients[i], self.clients[i+1])
+		
+		return dist
+
+
+
+	def dist_ajouter_tab_client(self, indice :int, cli_debut :Client, cli_fin :Client, lg_tab :int) -> float :
+		"""
+		Calcule et renvoie la différence de distance entre avant et après l'ajout de la liste de clients.
+
+		Paramètres
+		----------
+		indice : int
+			Indice où insérer la liste de clients.
+		cli_debut : Client
+			Premier client de la liste.
+		cli_fin : Client
+			Dernier client de la liste.
+		lg_tab : int
+			Longueur du trajet entre le premier et le dernier client.
+
+		Renvoie
+		-------
+		La différence positive de distance entre avant et après l'ajout de la liste de clients.
+		"""
+		assert isinstance(cli_debut, Client) and isinstance(cli_fin, Client)
+		assert isinstance(indice, int) and indice >= 0
+		assert isinstance(lg_tab, int) and lg_tab > 0
+
+		if self.nb_clients == 0 :
+			cli0 = self.depot
+			cli1 = self.depot
+		elif indice == 0 :
+			cli0 = self.depot
+			cli1 = self.clients[0]
+		elif indice >= self.nb_clients :
+			cli0 = self.clients[-1]
+			cli1 = self.depot
+		else :
+			cli0 = self.clients[indice-1]
+			cli1 = self.clients[indice]
+
+		return distance(cli0, cli_debut) + lg_tab + distance(cli_fin, cli1) - distance(cli0, cli1)
+
+
+
+	def dist_retirer_tab_client(self, ind_debut :int, ind_fin :int) -> float :
+		"""
+		Calcule et renvoie la différence de distance entre avant et après 
+		le retrait des clients situés entre les 2 indices.
+
+		Paramètres
+		----------
+		ind_debut : int
+			Indice du premier client.
+		ind_fin : int
+			Indice du dernier client.
+
+		Renvoie
+		-------
+		La différence négative de distance entre avant et après le retrait des clients.
+		"""
+		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
+		assert 0 <= ind_debut < ind_fin < self.nb_clients
+
+		dist_tab_clients = self.dist_tab_clients(ind_debut, ind_fin)
+		cli0 = self.depot if ind_debut == 0 				else self.clients[ind_debut-1]
+		cli1 = self.depot if ind_fin == self.nb_clients - 1 else self.clients[ind_fin+1]
+
+		return distance(cli0, cli1) - distance(cli0, self.clients[ind_debut]) - distance(self.clients[ind_fin], cli1) - dist_tab_clients
+
+
+
 
 
 class Flotte :
