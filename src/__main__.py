@@ -2,7 +2,10 @@ from classes import Flotte, Trajet
 from affichage import affichage_console, affichage_graphique
 import filesIO as fio
 
+from serveur import lancer_serveur
+
 from pathlib import Path
+import os
 
 
 
@@ -72,6 +75,26 @@ def approximation_solution(fichier :str, mode :int = 1) :
 
 
 
+def fonction_traitement(nom_fichier, fichier_données) :
+	chemin = Path("data")
+	nom_fichier = Path(nom_fichier)
+
+	with open(chemin/"in"/nom_fichier, "wb") as fichier :
+		fichier.write(fichier_données)
+	
+	approximation_solution(chemin/"in"/nom_fichier, CONSOLE)
+
+	os.remove(chemin/"in"/nom_fichier)
+
+	return (
+		chemin/"out"/nom_fichier,
+		f"""<h2>{nom_fichier}</h2><img src="{chemin/'out'/(nom_fichier.stem + '.png')}">"""
+	)
+
+
+
+
+
 def main_dev() :
 	"""La fonction main qui sera utilisé par les dévelepeurs"""
 	fichiers = [101, 102, 111, 112, 201, 202, 1101, 1102, 1201, 1202]
@@ -86,10 +109,10 @@ def main_dev() :
 
 def main() :
 	"""La fonction main qui sera utilisé par les utilisateurs"""
-	pass
+	lancer_serveur(fonction_traitement)
 
 
 
 if __name__ == '__main__' :
-	if True : main_dev()
+	if False : main_dev()
 	else : main()

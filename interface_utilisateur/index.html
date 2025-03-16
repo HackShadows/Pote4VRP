@@ -159,9 +159,11 @@
 			// Send the FormData object using fetch() or XMLHttpRequest()
 			fetch(form.action.split('/').pop(), {
 				method: 'POST',
+				redirect: 'follow',
 				body: formData
 			})
 			.then(response => {
+				window.location = "/success";
 				// Handle the response from the server
 				console.log(response);
 			})
