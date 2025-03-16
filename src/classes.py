@@ -225,180 +225,107 @@ class Trajet :
 
 
 
-	def info_tab_clients(self, ind_debut :int, ind_fin :int) -> tuple[float, int] :
+	def info_marchandise_tab_clients(self, indice :int) -> int :
 		"""
-		Calcule et renvoie la distance et la marchandise du trajet située entre les indices passés en paramètre.
-
-		Paramètres
-		----------
-		ind_debut : int
-			Indice du premier client.
-		ind_fin : int
-			Indice du dernier client.
-
-		Renvoie
-		-------
-		La distance et la marchandise du trajet situé entre le premier et le dernier client.
-		"""
-		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
-		assert 0 <= ind_debut < ind_fin < self.nb_clients
-
-		dist = 0
-		marchandise = 0
-		for i in range(ind_debut, ind_fin) :
-			cli = self.clients[i]
-			marchandise += cli.demande
-			dist += distance(cli, self.clients[i+1])
-		marchandise += self.clients[ind_fin].demande
-		
-		return (dist, marchandise)
-
-
-
-	# def dist_ajouter_tab_client(self, indice :int, cli_debut :Client, cli_fin :Client, lg_tab :int) -> float :
-	# 	"""
-	# 	Calcule et renvoie la différence de distance entre avant et après l'ajout de la liste de clients.
-
-	# 	Paramètres
-	# 	----------
-	# 	indice : int
-	# 		Indice où insérer la liste de clients.
-	# 	cli_debut : Client
-	# 		Premier client de la liste.
-	# 	cli_fin : Client
-	# 		Dernier client de la liste.
-	# 	lg_tab : int
-	# 		Longueur du trajet entre le premier et le dernier client.
-
-	# 	Renvoie
-	# 	-------
-	# 	La différence positive de distance entre avant et après l'ajout de la liste de clients.
-	# 	"""
-	# 	assert isinstance(cli_debut, Client) and isinstance(cli_fin, Client)
-	# 	assert isinstance(indice, int) and 0 <= indice
-	# 	assert isinstance(lg_tab, int) and 0 < lg_tab
-
-	# 	if self.nb_clients == 0 :
-	# 		cli0 = self.depot
-	# 		cli1 = self.depot
-	# 	elif indice == 0 :
-	# 		cli0 = self.depot
-	# 		cli1 = self.clients[0]
-	# 	elif indice >= self.nb_clients :
-	# 		cli0 = self.clients[-1]
-	# 		cli1 = self.depot
-	# 	else :
-	# 		cli0 = self.clients[indice-1]
-	# 		cli1 = self.clients[indice]
-
-	# 	return distance(cli0, cli_debut) + lg_tab + distance(cli_fin, cli1) - distance(cli0, cli1)
-
-
-
-	def dist_retirer_tab_client(self, ind_debut :int, ind_fin :int) -> float :
-		"""
-		Calcule et renvoie la différence de distance entre avant et après 
-		le retrait des clients situés entre les 2 indices.
-
-		Paramètres
-		----------
-		ind_debut : int
-			Indice du premier client.
-		ind_fin : int
-			Indice du dernier client.
-
-		Renvoie
-		-------
-		La différence négative de distance entre avant et après le retrait des clients.
-		"""
-		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
-		assert 0 <= ind_debut < ind_fin < self.nb_clients
-
-		infos = self.info_tab_clients(ind_debut, ind_fin)
-		cli0 = self.depot if ind_debut == 0                 else self.clients[ind_debut-1]
-		cli1 = self.depot if ind_fin == self.nb_clients - 1 else self.clients[ind_fin+1]
-
-		return distance(cli0, cli1) - distance(cli0, self.clients[ind_debut]) - distance(self.clients[ind_fin], cli1) - infos[0]
-
-
-
-	def dist_remplacer_tab_client(self, ind_debut :int, ind_fin :int, cli_debut :Client, cli_fin :Client, lg_tab :float) -> float :
-		"""
-		Calcule et renvoie la différence de distance entre avant et après le remplacement de la liste de clients.
-
-		Paramètres
-		----------
-		ind_debut : int
-			Indice du premier client de la liste à remplacer.
-		ind_fin : int
-			Indice du dernier client de la liste à remplacer.
-		cli_debut : Client
-			Premier client de la liste à ajouter.
-		cli_fin : Client
-			Dernier client de la liste à ajouter.
-		lg_tab : int
-			Longueur du trajet entre le premier et le dernier client à ajouter.
-
-		Renvoie
-		-------
-		La différence de distance entre avant et après le remplacement de la liste de clients.
-		"""
-		assert isinstance(cli_debut, Client) and isinstance(cli_fin, Client)
-		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut < ind_fin < self.nb_clients
-		assert isinstance(lg_tab, float) and 0 < lg_tab
-
-		dist_retirer_tab_client = self.dist_retirer_tab_client(ind_debut, ind_fin)
-		cli0 = self.depot if ind_debut == 0                 else self.clients[ind_debut-1]
-		cli1 = self.depot if ind_fin == self.nb_clients - 1 else self.clients[ind_fin+1]
-
-		return distance(cli0, cli_debut) + lg_tab + distance(cli_fin, cli1) + dist_retirer_tab_client
-
-
-
-	def ajouter_tab_client(self, indice :int, tab_clients :list[Client]) :
-		"""
-		Ajoute une liste de clients à la feuille de route, à la position 'indice'.
+		Calcule et renvoie la marchandise du trajet jusqu'à 'indice' inclus.
 
 		Paramètres
 		----------
 		indice : int
-			Indice où insérer la liste de clients.
+			Indice du dernier client.
+
+		Renvoie
+		-------
+		La marchandise du trajet jusqu'à 'indice' inclus.
+		"""
+		assert isinstance(indice, int) and 1 <= indice < self.nb_clients
+
+		marchandise = 0
+		for i in range(indice) :
+			cli = self.clients[i]
+			marchandise += cli.demande
+		marchandise += self.clients[indice].demande
+		
+		return marchandise
+
+
+
+	def ajouter_tab_client(self, tab_clients :list[Client]) :
+		"""
+		Ajoute une liste de clients au début de la feuille de route.
+
+		Paramètres
+		----------
 		tab_clients : list[Client]
 			Liste ordonnée des clients à ajouter dans l'itinéraire de livraison.
 		"""
 		assert isinstance(tab_clients, list)
-		assert isinstance(indice, int) and indice >= 0
 
-		for client in tab_clients[::-1]:
+		for client in tab_clients[::-1] :
 			assert isinstance(client, Client)
-			self.ajouter_client(indice, client)
+			self.ajouter_client(0, client)
 
 
 
-	def retirer_tab_client(self, ind_debut :int, ind_fin :int) -> list[Client] :
+	def retirer_tab_client(self, indice :int) -> list[Client] :
 		"""
 		Retire une liste de clients consécutifs de l'itinéraire.
 
 		Paramètres
 		----------
-		ind_debut : int
-			Indice du premier client.
-		ind_fin : int
+		indice : int
 			Indice du dernier client.
 
 		Renvoie
 		-------
 		La liste ordonnée des clients retirés du trajet.
 		"""
-		assert isinstance(ind_debut, int) and isinstance(ind_fin, int)
-		assert 0 <= ind_debut < ind_fin < self.nb_clients
+		assert isinstance(indice, int)
+		assert 1 <= indice < self.nb_clients
 
 		liste_clients = []
-		for _ in range(ind_fin - ind_debut + 1):
-			liste_clients.append(self.retirer_client(ind_debut))
+		for _ in range(indice + 1) :
+			liste_clients.append(self.retirer_client(0))
 		
 		return liste_clients
 
+
+
+def dist_echanger_tab_clients(trajet1 :tuple[Trajet, int], trajet2 :tuple[Trajet, int]) -> float :
+	"""
+	Calcule et renvoie la différence de distance entre avant et après l'échange des portions de trajets.
+
+	Paramètres
+	----------
+	trajet1 : tuple[Trajet, int]
+		Tuple contenant le premier trajet et l'indice où effectuer la séparation.
+	trajet2 : tuple[Trajet, int]
+		Tuple contenant le second trajet et l'indice où effectuer la séparation.
+
+	Renvoie
+	-------
+	La différence de distance entre avant et après l'échange des portions de trajets.
+	"""
+	assert isinstance(trajet1, tuple) and isinstance(trajet2, tuple)
+
+	match [trajet1, trajet2] :
+		
+		case [[Trajet(), int(ind1)], [Trajet(), int(ind2)]] :
+			t1 = trajet1[0]
+			t2 = trajet2[0]
+			nb1 = t1.nb_clients
+			clients1 = t1.clients
+			nb2 = t2.nb_clients
+			clients2 = t2.clients
+			assert 1 <= ind1 < nb1 and 1 <= ind2 < nb2
+
+			cli1 = t1.depot if ind1 == nb1-1 else clients1[ind1+1]
+			cli2 = t2.depot if ind2 == nb2-1 else clients2[ind2+1]
+
+			return distance(clients2[ind2], cli1) + distance(clients1[ind1], cli2) - distance(clients2[ind2], cli2) - distance(clients1[ind1], cli1)
+
+		case _ :
+			raise AssertionError("trajet1 et trajet2 ne respectent pas le format attendu !")
 
 
 
