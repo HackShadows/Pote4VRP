@@ -27,44 +27,44 @@
 
 
 		<template id="fichier-selectionne">
-<style>
-* { box-sizing: border-box; }
-.container {
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: space-between;
-	align-items: center;
-	width: 100%;
-	padding: .8em 1.5em;
-	background-color: #FFF8F8;
-}
-div > div {
-	display: flex;
-	flex-flow: row nowrap;
-	justify-content: space-between;
-	align-items: center;
-	width: 50%;
-}
-slot:nth-child(2) {
-	font-size: .9em;
-	color: #344;
-	margin-left: auto;
-}
-button {
-	padding: 0;
-	border: none;
-	margin: 0;
-	background-color: transparent;
-	color: black;
-}
-button:hover {
-	color: red;
-}
-svg {
-	width: 24px;
-	height: 24px;
-}
-</style>
+			<style>
+			* { box-sizing: border-box; }
+			.container {
+				display: flex;
+				flex-flow: row nowrap;
+				justify-content: space-between;
+				align-items: center;
+				width: 100%;
+				padding: .8em 1.5em;
+				background-color: #FFF8F8;
+			}
+			div > div {
+				display: flex;
+				flex-flow: row nowrap;
+				justify-content: space-between;
+				align-items: center;
+				width: 50%;
+			}
+			slot:nth-child(2) {
+				font-size: .9em;
+				color: #344;
+				margin-left: auto;
+			}
+			button {
+				padding: 0;
+				border: none;
+				margin: 0;
+				background-color: transparent;
+				color: black;
+			}
+			button:hover {
+				color: red;
+			}
+			svg {
+				width: 24px;
+				height: 24px;
+			}
+			</style>
 			<div class="container">
 				<div><slot name="filename">Nom-du-fichier.vrp</slot>
 				<slot name="filesize">xxx.xx KB</slot></div>
@@ -80,14 +80,14 @@ svg {
 
 
 
-		<form id="formulaire">
+		<form id="formulaire" action="process" method="POST">
 			<p id="form-titre">Sélectionnez les ensembles de données à optimiser :</p>
 			<label id="form-ajouter-fichier">
 				<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
 					<path fill="currentColor" d="M3 1h12.414L21 6.586V12h-2V9h-6V3H5v18h7v2H3V1Zm12 2.414V7h3.586L15 3.414ZM20 14v4h4v2h-4v4h-2v-4h-4v-2h4v-4h2Z"/>
 				</svg>
 				<span>Choisissez vos fichiers</span>
-				<input id="choix-fichiers" type="file">
+				<input id="choix-fichiers" type="file" accept=".vrp">
 			</label>
 			<div id="form-text-drag-and-drop">
 				<p>ou glissez-déposez ici</p>
@@ -144,6 +144,32 @@ svg {
 		const formSoumettre      = document.getElementById("form-soumettre");
 		const formChooseFileText = document.querySelector("#form-ajouter-fichier span");
 		const formNbFichiers     = document.querySelector("#form-soumettre span");
+
+		document.querySelector("#form-soumettre input[type=\"submit\"]").addEventListener("click", (event) => {
+			event.preventDefault(); // Prevent the default form submission
+
+			// Create a new FormData object
+			const formData = new FormData();
+
+			// Add each file in the file_list to the FormData object
+			for(let i = 0; i < selectedFiles.length; i++) {
+				formData.append(`file_${i}`, selectedFiles[i]);
+			}
+
+			// Send the FormData object using fetch() or XMLHttpRequest()
+			fetch(form.action.split('/').pop(), {
+				method: 'POST',
+				body: formData
+			})
+			.then(response => {
+				// Handle the response from the server
+				console.log(response);
+			})
+			.catch(error => {
+				// Handle any errors
+				console.error(error);
+			});
+		});
 	</script>
 
 
