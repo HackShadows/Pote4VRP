@@ -8,13 +8,18 @@ html * {
 
 
 
+.hidden {
+	display: none !important;
+}
+
+
+
 body {
 	display: flex;
 	flex-flow: column nowrap;
 	align-items: stretch;
 	width: 100%;
 	height: 100%;
-	padding: 8px;
 	margin: 0;
 	background-color: antiquewhite;
 }
@@ -32,6 +37,7 @@ header {
 	align-items: center;
 	height: 15%;
 	padding: 30px;
+	box-shadow: 0 10px 20px #AA57;
 	background-color: gold;
 }
 
@@ -83,7 +89,7 @@ main {
 
 
 
-form {
+#formulaire {
 	display: flex;
 	flex-flow: column nowrap;
 	justify-content: space-evenly;
@@ -91,21 +97,29 @@ form {
 	width: 50%;
 	padding: 5vmin 0;
 	border: dashed red 5px;
-	margin-bottom: 7%;
+	margin-bottom: 7vmin;
 	border-radius: 100px;
 	background-color: #0001;
+}
+#formulaire.file-selected {
+	align-items: start;
+	width: 50%;
+	padding: 0;
+	border: none;
+	border-radius: 0;
+	background-color: transparent;
 }
 
 
 
 
-
-form p {
+#form-text-drag-and-drop p,
+#form-titre {
 	margin: 1em 0;
 	text-align: center;
 	font-size: 1.1em;
 }
-form > p {
+#form-titre {
 	text-decoration: underline;
 }
 
@@ -113,47 +127,142 @@ form > p {
 
 
 
-form input[type="file"] {
+#form-ajouter-fichier input[type="file"] {
 	display: none;
 }
-form label {
+#form-ajouter-fichier {
 	display: flex;
 	flex-flow: row nowrap;
-	justify-content: space-evenly;
+	justify-content: center;
 	align-items: center;
 	padding: 7px 25px 7px 20px;
 	margin: 3% 0 5% 0;
 	border-radius: 5px;
 	cursor: pointer;
-	text-align: center;
-	font-size: 2em;
+	box-shadow: 0 3px 7px #23B;
 	color: white;
-	font-weight: bold;
 	background-color: #55C;
 }
-form label:hover {
+#form-ajouter-fichier:hover {
 	background-color: #66D;
 }
-form label svg {
+#form-ajouter-fichier span {
+	text-align: center;
+	font-size: 2em;
+	font-weight: bold;
+}
+#form-ajouter-fichier svg {
 	width: 35px;
 	height: 35px;
 	margin-right: 15px;
 }
 
 
+#form-ajouter-fichier.file-selected {
+	padding: 5px 16px 5px 13px;
+	border: solid 1px #CBB;
+	margin: 0;
+	border-radius: 5px 5px 0 0;
+	box-shadow: none;
+	color: #55C;
+	background-color: #EDD;
+}
+#form-ajouter-fichier.file-selected span {
+	font-size: 1.2em;
+}
+#form-ajouter-fichier.file-selected svg {
+	width: 24px;
+	height: 24px;
+	margin-right: 10px;
+}
 
 
-form > div {
+
+
+
+#form-text-drag-and-drop {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: center;
 	align-items: center;
 }
-form > div p {
+#form-text-drag-and-drop p {
 	font-style: oblique;
 }
-form > div svg {
+#form-text-drag-and-drop svg {
 	margin: 6px 0 0 .5em;
+}
+
+
+
+
+
+#form-fichier-liste {
+	display: flex;
+	flex-flow: column nowrap;
+	align-items: center;
+	width: 100%;
+	padding: 0;
+	margin: 0;
+}#form-fichier-liste > li {
+	width: 100%;
+	border-left: solid 1px #CCB;
+	border-right: solid 1px #CCB;
+	list-style-type: none;
+}
+
+#form-fichier-liste > li:first-child {
+	border-top: solid 1px #CCB;
+	border-top-left-radius: 5px;
+}
+
+
+
+
+
+#form-soumettre {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: space-between;
+	align-content: center;
+	width: 100%;
+	padding-left: 20px;
+	border: solid 1px #CBB;
+	border-radius: 0 0 5px 5px;
+	background-color: #EDD;
+}
+
+
+
+#form-soumettre > span {
+	margin: .9em 0 1.1em 0;
+	font-size: 1em;
+}
+
+
+
+#form-soumettre label {
+	display: flex;
+	flex-flow: row nowrap;
+	align-content: center;
+	padding: .3em 30px .4em 30px;
+	border-bottom-right-radius: 5px;
+	font-size: 1.6em;
+	text-align: center;
+	color: white;
+	background-color: #55C;
+}
+#form-soumettre label:hover {
+	background-color: #66D;
+}
+#form-soumettre input[type=submit] {
+	display: none;
+}
+
+#form-soumettre label svg {
+	width: 30px;
+	height: 30px;
+	margin: auto 0 auto 10px;
 }
 
 
