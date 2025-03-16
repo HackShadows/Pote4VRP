@@ -62,8 +62,8 @@ def approximation_solution(fichier :str, mode :int = 1) :
 
 
 	détails = bool(mode & DETAILS)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console(flotte,                détails)
-	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique(positions, flotte,   détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (fichier_in.name, positions, flotte, détails)
+	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
 
 
 	fio.exporter_vrp(fichier_out, flotte, **métadonnées)

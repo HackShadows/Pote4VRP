@@ -23,7 +23,11 @@ def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, deta
 		Booléen permettant de spécifier si l'on souhaite un affichage détaillé.
 	"""
 	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte) and isinstance(detail, bool) and 0 < flotte.nb_trajets
-	for tu in pos_clients: assert isinstance(tu, tuple)
+	for tu in pos_clients:
+		assert isinstance(tu, tuple)
+		match tu:
+			case [int(), int()] : pass
+			case _ : raise AssertionError("pos_clients ne respecte pas le format attendu !")
 	
 	t0 = t.time()
 	if detail : flotte.afficher(True)
@@ -140,18 +144,28 @@ def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, deta
 
 
 
-def affichage_console(flotte :Flotte, detail :bool = False) :
+def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flotte :Flotte, detail :bool = False) :
 	"""
 	Calcule et affiche en console la solution approximée.
 
 	Paramètres
 	----------
+	nom_fichier : str
+		Nom du fichier initial.
+	pos_clients : list[tuple[int, int]]
+		Liste de tuples contenant les coordonnées (x, y) des clients.
 	flotte : Flotte
 		Flotte sur laquelle sont effectués les calculs.
 	detail : bool
 		Booléen permettant de spécifier si l'on souhaite un affichage détaillé.
 	"""
-	assert isinstance(flotte, Flotte) and isinstance(detail, bool)
+	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte) and isinstance(detail, bool)
+	for tu in pos_clients:
+		assert isinstance(tu, tuple)
+		match tu:
+			case [int(), int()] : pass
+			case _ : raise AssertionError("pos_clients ne respecte pas le format attendu !")
+	
 	t0 = t.time()
 	if detail: flotte.afficher(True)
 	it = 0
@@ -186,8 +200,10 @@ def affichage_console(flotte :Flotte, detail :bool = False) :
 				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
 		it += 1
 	
+	new_lg = f"{flotte.longueur:.02f}"
+	
 	print(f"\nLongueur initiale : {lg}km")
-	print(f"Longueur finale : {round(flotte.longueur, 2)}km\n")
+	print(f"Longueur finale : {new_lg}km\n")
 
 	if detail : flotte.afficher(True)
 	
@@ -195,3 +211,39 @@ def affichage_console(flotte :Flotte, detail :bool = False) :
 	print("Temps d'éxecution : ", end="")
 	if t.time() - t0 < 1 : print(round((t.time() - t0)*1000), "ms")
 	else : print(round(t.time() - t0, 2), "s")
+
+	
+
+	points = np.array(pos_clients)
+	pos_depot = np.array(flotte.trajets[0].depot.pos)
+	segments = [np.array([pos_depot] + [client.pos for client in trajet.clients] + [pos_depot]) for trajet in flotte.trajets]
+	
+	# Création de la figure et des axes
+	fig, ax = plt.subplots(figsize=(11, 8))
+	pos_x, pos_y = points[:, 0], points[:, 1]
+	ax.set_xlim(-2, max(pos_x)+5)
+	ax.set_ylim(-2, max(pos_y)+11)
+
+	# Points fixes
+	ax.scatter(pos_x, pos_y, color='blue', label="Clients")
+	ax.scatter(pos_depot[0], pos_depot[1], color='red', label="Dépôt")
+
+	text_it = plt.text(0, max(pos_y)+2, "Itérations = " + str(it))
+	text_lg = plt.text(0, max(pos_y)+5, f"Longueur = {new_lg}km")
+	text_nb = plt.text(0, max(pos_y)+8, "Nombre de camions : " + str(flotte.nb_trajets))
+
+	# Tracé des trajets
+	for i, pos in enumerate(segments) :
+		ax.plot(pos[:,0], pos[:,1], linewidth=2, label=f'Camion {i+1}')
+	
+	# Personnalisation du graphique
+	ax.set_title("Feuille de route")
+	ax.set_xlabel("Axe X")
+	ax.set_ylabel("Axe Y")
+	ax.legend()
+
+	# Sauvegarde de l'image
+	plt.savefig(f"data/out/{nom_fichier.replace(".vrp", "")}.png", dpi=300)
+
+	# Affichage
+	plt.show()
