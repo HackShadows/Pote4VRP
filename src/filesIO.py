@@ -304,8 +304,7 @@ def exporter_vrp(fichier :str|Path|IO[str], flotte :Flotte, **métadonnées :Any
 	if isinstance(fichier, (str, Path)) :
 		métadonnées.setdefault("NAME", fichier)
 		with open(fichier, 'w') as f :
-			exporter_vrp(f, flotte, **métadonnées)
-			return
+			return exporter_vrp(f, flotte, **métadonnées)
 
 
 

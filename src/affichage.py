@@ -311,7 +311,8 @@ def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flot
 	ax.legend()
 
 	# Sauvegarde de l'image
-	plt.savefig(f"data/out/{nom_fichier.replace(".vrp", "")}.png", dpi=100)
+	plt.savefig(f"data/out/{nom_fichier}.svg")
 
 	# # Affichage
 	# plt.show()
+	plt.close(fig)
