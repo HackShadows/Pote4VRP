@@ -225,6 +225,27 @@ class Trajet :
 
 
 
+	def reverse_tab(self, ind_debut :int, ind_fin :int) :
+		"""
+		Inverse le tableau de clients entre les indices 'ind_debut' et 'ind_fin' inclus.
+
+		Paramètres
+		----------
+		ind_debut : int
+			Indice du premier client.
+		ind_fin : int
+			Indice du dernier client.
+		"""
+		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut <= ind_fin < self.nb_clients
+		
+		clients = self.clients
+		for i in range((ind_fin - ind_debut)//2):
+			cli_tmp = clients[ind_debut+i]
+			clients[ind_debut+i] = clients[ind_fin-i]
+			clients[ind_fin-i] = cli_tmp
+			
+
+
 	def info_marchandise_tab_clients(self, indice :int) -> int :
 		"""
 		Calcule et renvoie la marchandise du trajet jusqu'à 'indice' inclus.

@@ -187,11 +187,43 @@ def deux_opt(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 		dist_tmp = distance(cli00, cli01)
 		for j in range(i+2, nb+1) :
 			cli10 = trajet.clients[j-1] 
-			cli11 = trajet.clients[j] if i < nb else trajet.depot
+			cli11 = trajet.clients[j] if j < nb else trajet.depot
 			dist = distance(cli00, cli10) + distance(cli01, cli11) - distance(cli10, cli11) - dist_tmp
 			if dist < mini :
-				mini = tmp
+				mini = dist
 				ind = (i, j)
+	
+	return (mini, ind)
+
+
+
+def deux_opt_flotte(flotte :Trajet) -> tuple[float, tuple[int, int, int]] :
+	"""
+	Effectue l'opérateur 2-opt sur tous les trajets de la flotte et renvoie le meilleur.
+	
+	Paramètres
+	----------
+	flotte : Flotte
+		Flotte sur laquelle est appliqué l'opérateur 2-opt.
+	
+	Renvoie
+	-------
+	La différence de longueur entre la nouvelle flotte et l'ancienne, et 
+	un tuple contenant l'indice du trajet et les indices des segments modifiés.
+	"""
+	assert isinstance(flotte, Flotte)
+
+	mini = 0
+	ind = None
+	for i, trajet in enumerate(flotte.trajets) :
+		tmp = deux_opt(trajet)
+		match tmp :
+			case [float(dist), [int(x1), int(x2)]] :
+				if dist < mini :
+					mini = dist
+					ind = (i, x1, x2)
+			case _ :
+				pass
 	
 	return (mini, ind)
 
@@ -350,6 +382,6 @@ def effectuer_2_opt(flotte :Flotte, new_dist :float, indice :tuple[int, int, int
 		case [int(i), int(x1), int(x2)] :
 			trajet = flotte.trajets[i]
 			trajet.longueur += new_dist
-			trajet.clients[x1+1, x2].reverse()
+			trajet.reverse_tab(x1, x2-1)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
