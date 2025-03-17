@@ -4,6 +4,7 @@ import legacy_cgi
 from typing import Callable
 
 import time
+from io import TextIOWrapper
 from webbrowser import open_new_tab
 from threading import Thread
 
@@ -31,7 +32,7 @@ class ServeurVRP(SimpleHTTPRequestHandler) :
 		elif self.path.endswith('.css'): 
 			# Serve the style.css file
 			self.serve_file('interface_utilisateur/static/css/style.css')
-		elif self.path.endswith('.png') :
+		elif self.path.endswith('.svg') :
 			self.serve_file(self.path.lstrip('/'))
 		elif self.path == '/success' :
 			self.serve_file('interface_utilisateur/success.html')
@@ -75,8 +76,8 @@ class ServeurVRP(SimpleHTTPRequestHandler) :
 				self.send_header("Content-type", "application/javascript")
 			elif file_path.endswith('.css'):
 				self.send_header("Content-type", "text/css")
-			elif file_path.endswith('.png'):
-				self.send_header("Content-type", "image/png")
+			elif file_path.endswith('.svg'):
+				self.send_header("Content-type", "image/svg+xml")
 			self.end_headers()
 			self.wfile.write(content)
 		except FileNotFoundError:
@@ -89,7 +90,7 @@ class ServeurVRP(SimpleHTTPRequestHandler) :
 		self.send_header("Content-type", "text/html")
 		self.end_headers()
 		with open("interface_utilisateur/not_found.html", "r") as f :
-			self.wfile.write((f % url).encode())
+			self.wfile.write((f.read() % url).encode())
 
 
 
@@ -100,12 +101,13 @@ class ServeurVRP(SimpleHTTPRequestHandler) :
 		content = ""
 		for file in files :
 			try :
-				d, c = self.process_function(file.filename, file.file.read())
+				d, c = self.process_function(file.filename, TextIOWrapper(file.file, encoding="utf-8"))
 				download.append(d)
 				content += c
-			except Exception as e:
-				content += """<div class="erreur"><h2><Erreur lors du traitement des données de %s</h2><code>%s</code></div>""" % (file.filename, repr(e))
+			except IndentationError as e:
+				content += """<div class="erreur"><h2>Erreur lors du traitement des données de %s</h2><code>%s</code></div>""" % (file.filename, repr(e))
 
+		print(content)
 		with open("interface_utilisateur/result.html", "r") as f :
 			result = f.read() % content
 
@@ -125,6 +127,7 @@ def lancer_serveur(fonction_traitement :Callable[[legacy_cgi.FieldStorage], None
 		thread = Thread(target = lambda : time.sleep(3) or open_new_tab(url))
 		thread.start()
 		with HTTPServer(addresse_serveur, instantiate) as serveur_web :
+			print("serve")
 			serveur_web.serve_forever()
 	except KeyboardInterrupt:
 		pass

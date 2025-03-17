@@ -1,4 +1,4 @@
-from classes import Flotte, Trajet
+from classes import Flotte, Trajet, Client
 from affichage import affichage_console, affichage_graphique
 import filesIO as fio
 
@@ -6,6 +6,9 @@ from serveur import lancer_serveur
 
 from pathlib import Path
 import os
+from datetime import datetime
+
+from typing import Any, IO, Optional
 
 
 
@@ -19,39 +22,8 @@ DETAILS   = 0b_10
 
 
 
-def approximation_solution(fichier :str, mode :int = 1) :
-	"""
-	Calcule et affiche un itinéraire de livraison proche de l'optimal.
-	
-	Paramètres
-	----------
-	fichier : str
-		Chemin du fichier vrp contenant les informations sur les clients à livrer.
-		Ex : data/in/data101.vrp
-	mode : int
-		Entier permettant de spécifier l'affichage désiré.
-		Affichage console (0), Affichage graphique (1), 
-		Affichage console détaillé (2), Affichage graphique détaillé (3)
-	
-	Erreurs
-	-------
-	ValueError
-		Le fichier d'entré contient plus d'un dépôt.
-	Toutes les erreurs de filesIO.importer_vrp
-	"""
-	fichier_in  = Path(fichier)
-	fichier_out = fichier_in.parent.parent / "out" / fichier_in.name
 
-
-	métadonnées, dépôts, clients = fio.importer_vrp(fichier_in)
-	if len(dépôts) != 1 :
-		raise ValueError("L'algorithmes ne peut gérer qu'un seul dépôt à la fois.")
-	dépôt = dépôts[0]
-
-
-	positions = [cli.pos for cli in clients]
-
-
+def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client, clients :list[Client]) -> Flotte :
 	flotte = Flotte(métadonnées["MAX_QUANTITY"])
 	trajet = Trajet(dépôt)
 	for i, cli in enumerate(clients) :
@@ -62,11 +34,74 @@ def approximation_solution(fichier :str, mode :int = 1) :
 
 		trajet.ajouter_client(i, cli)
 	flotte.ajouter_trajet(trajet)
+	return flotte
 
+
+
+def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Optional[str|Path|IO[str]] = None) :
+	"""
+	Calcule et affiche un itinéraire de livraison proche de l'optimal.
+	
+	Paramètres
+	----------
+	fichier : path_like | stream_like
+		Chemin du fichier vrp contenant les informations sur les clients à livrer.
+		Ex : data/in/data101.vrp
+	mode : int
+		Entier permettant de spécifier l'affichage désiré.
+		Affichage console (0), Affichage graphique (1), 
+		Affichage console détaillé (2), Affichage graphique détaillé (3)
+	sortie : path_like | stream_like
+		Chemin du fichier vrp où écrire les informations de la solution.
+		Si non-spécifié, le chemin est choisi automatiquement (data/out/result_{datetime.now()}.vrp)
+	
+	Erreurs
+	-------
+	ValueError
+		Le fichier d'entré contient plus d'un dépôt.
+	Toutes les erreurs de filesIO.importer_vrp
+	"""
+	nom_fichier = None
+
+	if isinstance(fichier, (str, Path)) :
+		nom_fichier = fichier_in = Path(fichier)
+	else :
+		fichier_in = fichier
+		try :
+			if isinstance(fichier.name, str) :
+				nom_fichier = Path(fichier_name)
+		except AttributeError : pass
+
+	if isinstance(sortie, (str, Path)) :
+		nom_fichier = fichier_out = Path(sortie)
+	elif sortie is not None :
+		fichier_out = sortie
+		try :
+			if isinstance(sortie.name, str) :
+				nom_fichier = Path(sortie.name)
+		except AttributeError : pass
+
+	if nom_fichier is None :
+		nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
+		if sortie is None :
+			sortie = nom_fichier
+
+
+
+	métadonnées, dépôts, clients = fio.importer_vrp(fichier_in)
+	if len(dépôts) != 1 :
+		raise ValueError("L'algorithme ne peut gérer qu'un seul dépôt à la fois.")
+	dépôt = dépôts[0]
+
+
+
+	flotte = générer_solution_aléatoire(métadonnées, dépôt, clients)
+	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (fichier_in.name, positions, flotte, détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
+	
 
 
 	fio.exporter_vrp(fichier_out, flotte, **métadonnées)
@@ -79,16 +114,11 @@ def fonction_traitement(nom_fichier, fichier_données) :
 	chemin = Path("data")
 	nom_fichier = Path(nom_fichier)
 
-	with open(chemin/"in"/nom_fichier, "wb") as fichier :
-		fichier.write(fichier_données)
-	
-	approximation_solution(chemin/"in"/nom_fichier, CONSOLE)
-
-	os.remove(chemin/"in"/nom_fichier)
+	approximation_solution(fichier_données, CONSOLE, chemin/"out"/nom_fichier)
 
 	return (
 		chemin/"out"/nom_fichier,
-		f"""<h2>{nom_fichier}</h2><img src="{chemin/'out'/(nom_fichier.stem + '.png')}">"""
+		f"""<h2>{nom_fichier}</h2><img src="{chemin/'out'/(nom_fichier.stem + '.svg')}">"""
 	)
 
 
