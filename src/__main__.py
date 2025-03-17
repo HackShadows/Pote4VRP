@@ -23,17 +23,38 @@ DETAILS   = 0b_10
 
 
 
-def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client, clients :list[Client]) -> Flotte :
+def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client, clients :list[Client], remplissage :float=0.5) -> Flotte :
+	"""
+	Génère une solution initiale.
+
+	Paramètres
+	----------
+	métadonnées : dict[str, Any]
+		Dictionnaire contenant les métadonnées présentes dans le fichier initial.
+	dépôt : Client
+		Client contenant toutes les informations du dépôt.
+	clients : list[Client]
+		Liste des clients à mettre dans la solution initiale.
+	remplissage : float
+		Pourcentage de remplissage des camions (compris entre 0.01 et 1.00)
+	
+	Renvoie
+	-------
+	Une flotte initiale.
+	"""
+	assert isinstance(remplissage, float) and 0 < remplissage < 1
+	
 	flotte = Flotte(métadonnées["MAX_QUANTITY"])
 	trajet = Trajet(dépôt)
 	for i, cli in enumerate(clients) :
 
-		if trajet.marchandise > flotte.capacite / 2 :
+		if trajet.marchandise > flotte.capacite * remplissage :
 			flotte.ajouter_trajet(trajet)
 			trajet = Trajet(dépôt)
 
 		trajet.ajouter_client(i, cli)
 	flotte.ajouter_trajet(trajet)
+	
 	return flotte
 
 
@@ -58,13 +79,39 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	Erreurs
 	-------
 	ValueError
-		Le fichier d'entré contient plus d'un dépôt.
+		Le fichier d'entrée contient plus d'un dépôt.
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
-	nom_fichier = None
+	# nom_fichier = None
+
+	# if isinstance(fichier, (str, Path)) :
+	# 	nom_fichier = fichier_in = Path(fichier)
+	# else :
+	# 	fichier_in = fichier
+	# 	try :
+	# 		if isinstance(fichier.name, str) :
+	# 			nom_fichier = Path(fichier.name)
+	# 	except AttributeError : pass
+
+	# if isinstance(sortie, (str, Path)) :
+	# 	nom_fichier = fichier_out = Path(sortie)
+	# elif sortie is not None :
+	# 	fichier_out = sortie
+	# 	try :
+	# 		if isinstance(sortie.name, str) :
+	# 			nom_fichier = Path(sortie.name)
+	# 	except AttributeError : pass
+
+	# if nom_fichier is None :
+	# 	nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
+	# 	if sortie is None :
+	# 		sortie = nom_fichier
+
+	nom_fichier = fichier_out = None
 
 	if isinstance(fichier, (str, Path)) :
-		nom_fichier = fichier_in = Path(fichier)
+		fichier_in = Path(fichier)
+		nom_fichier = fichier_in.name
 	else :
 		fichier_in = fichier
 		try :
@@ -73,7 +120,8 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		except AttributeError : pass
 
 	if isinstance(sortie, (str, Path)) :
-		nom_fichier = fichier_out = Path(sortie)
+		fichier_out = Path(sortie)
+		nom_fichier = fichier_out.name
 	elif sortie is not None :
 		fichier_out = sortie
 		try :
@@ -81,10 +129,12 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 				nom_fichier = Path(sortie.name)
 		except AttributeError : pass
 
+	if fichier_out is None :
+		date = datetime.now().strftime("%x_%X").replace(":", "-")
+		fichier_out = Path(f"data/out/result_{date.replace("/", "-")}.vrp")
 	if nom_fichier is None :
-		nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
-		if sortie is None :
-			sortie = nom_fichier
+		nom_fichier = fichier_out.name
+			
 
 
 
@@ -99,7 +149,8 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
+	#if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier, positions, flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
 	
 
@@ -144,5 +195,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if False : main_dev()
+	if True : main_dev()
 	else : main()
