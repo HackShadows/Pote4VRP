@@ -69,7 +69,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		fichier_in = fichier
 		try :
 			if isinstance(fichier.name, str) :
-				nom_fichier = Path(fichier_name)
+				nom_fichier = Path(fichier.name)
 		except AttributeError : pass
 
 	if isinstance(sortie, (str, Path)) :
