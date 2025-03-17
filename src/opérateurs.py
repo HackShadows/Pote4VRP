@@ -161,6 +161,42 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 
 
 
+def deux_opt(trajet :Trajet) -> tuple[float, tuple[int, int]] :
+	"""
+	Calcule et renvoie un tuple avec des informations sur le trajet avec la plus courte longueur 
+	après une itération de 2-opt.
+	
+	Paramètres
+	----------
+	trajet : Trajet
+		Trajet sur lequelle est appliqué l'opérateur 2-opt.
+	
+	Renvoie
+	-------
+	La différence de longueur entre le nouveau trajet et l'ancien, 
+	et un tuple contenant les indices des segments modifiés.
+	"""
+	assert isinstance(trajet, Trajet)
+
+	nb = trajet.nb_clients
+	mini = 0
+	ind = None
+	for i in range(nb-1) :
+		cli00 = trajet.clients[i-1] if i > 0 else trajet.depot
+		cli01 = trajet.clients[i]
+		dist_tmp = distance(cli00, cli01)
+		for j in range(i+2, nb+1) :
+			cli10 = trajet.clients[j-1] 
+			cli11 = trajet.clients[j] if i < nb else trajet.depot
+			dist = distance(cli00, cli10) + distance(cli01, cli11) - distance(cli10, cli11) - dist_tmp
+			if dist < mini :
+				mini = tmp
+				ind = (i, j)
+	
+	return (mini, ind)
+
+
+
 def cross_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[int, int]]] :
 	"""
 	Calcule et renvoie un tuple avec des informations sur la flotte avec la plus courte longueur 
@@ -290,3 +326,30 @@ def effectuer_cross_exchange(flotte :Flotte, new_dist :float, indice :tuple[tupl
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
 
+
+
+def effectuer_2_opt(flotte :Flotte, new_dist :float, indice :tuple[int, int, int]) :
+	"""
+	Effectue les changements en appliquant l'opérateur 2-opt.
+	
+	Paramètres
+	----------
+	flotte : Flotte
+		Flotte sur laquelle est appliqué l'opérateur 2-opt.
+	new_dist : float
+		Différence de distance entre avant et après le changement.
+	indice : tuple[int, int, int]
+		Indices des positions des segments à modifier.
+	"""
+	assert isinstance(flotte, Flotte)
+	assert isinstance(new_dist, float) and new_dist < 0
+	assert isinstance(indice, tuple)
+
+	flotte.longueur += new_dist
+	match indice :
+		case [int(i), int(x1), int(x2)] :
+			trajet = flotte.trajets[i]
+			trajet.longueur += new_dist
+			trajet.clients[x1+1, x2].reverse()
+		case _ :
+			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
