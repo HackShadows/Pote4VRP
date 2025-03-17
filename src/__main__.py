@@ -82,36 +82,10 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		Le fichier d'entrée contient plus d'un dépôt.
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
-	# nom_fichier = None
-
-	# if isinstance(fichier, (str, Path)) :
-	# 	nom_fichier = fichier_in = Path(fichier)
-	# else :
-	# 	fichier_in = fichier
-	# 	try :
-	# 		if isinstance(fichier.name, str) :
-	# 			nom_fichier = Path(fichier.name)
-	# 	except AttributeError : pass
-
-	# if isinstance(sortie, (str, Path)) :
-	# 	nom_fichier = fichier_out = Path(sortie)
-	# elif sortie is not None :
-	# 	fichier_out = sortie
-	# 	try :
-	# 		if isinstance(sortie.name, str) :
-	# 			nom_fichier = Path(sortie.name)
-	# 	except AttributeError : pass
-
-	# if nom_fichier is None :
-	# 	nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
-	# 	if sortie is None :
-	# 		sortie = nom_fichier
-
-	nom_fichier = fichier_out = None
+	nom_fichier = None
 
 	if isinstance(fichier, (str, Path)) :
-		fichier_in = Path(fichier)
-		nom_fichier = fichier_in.name
+		nom_fichier = fichier_in = Path(fichier)
 	else :
 		fichier_in = fichier
 		try :
@@ -120,8 +94,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		except AttributeError : pass
 
 	if isinstance(sortie, (str, Path)) :
-		fichier_out = Path(sortie)
-		nom_fichier = fichier_out.name
+		nom_fichier = fichier_out = Path(sortie)
 	elif sortie is not None :
 		fichier_out = sortie
 		try :
@@ -129,12 +102,10 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 				nom_fichier = Path(sortie.name)
 		except AttributeError : pass
 
-	if fichier_out is None :
-		date = datetime.now().strftime("%x_%X").replace(":", "-")
-		fichier_out = Path(f"data/out/result_{date.replace("/", "-")}.vrp")
 	if nom_fichier is None :
-		nom_fichier = fichier_out.name
-			
+		nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
+	if sortie is None :
+		fichier_out = nom_fichier
 
 
 
@@ -149,8 +120,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
-	#if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier, positions, flotte, détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
 	
 
