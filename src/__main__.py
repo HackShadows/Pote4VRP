@@ -83,6 +83,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
 	nom_fichier = None
+	#TODO : .name sur nom_fichier
 
 	if isinstance(fichier, (str, Path)) :
 		nom_fichier = fichier_in = Path(fichier)
@@ -103,6 +104,8 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		except AttributeError : pass
 
 	if nom_fichier is None :
+		#date = datetime.now().strftime("%x_%X").replace(":", "-")
+		#fichier_out = Path(f"data/out/result_{date.replace("/", "-")}.vrp")
 		nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
 	if sortie is None :
 		fichier_out = nom_fichier
