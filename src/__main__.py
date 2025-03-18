@@ -82,33 +82,31 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		Le fichier d'entrée contient plus d'un dépôt.
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
-	nom_fichier = None
-	#TODO : .name sur nom_fichier
+	chemin_fichier = None
 
 	if isinstance(fichier, (str, Path)) :
-		nom_fichier = fichier_in = Path(fichier)
+		chemin_fichier = fichier_in = Path(fichier)
 	else :
 		fichier_in = fichier
 		try :
 			if isinstance(fichier.name, str) :
-				nom_fichier = Path(fichier.name)
+				chemin_fichier = Path(fichier.name)
 		except AttributeError : pass
 
 	if isinstance(sortie, (str, Path)) :
-		nom_fichier = fichier_out = Path(sortie)
+		chemin_fichier = fichier_out = Path(sortie)
 	elif sortie is not None :
 		fichier_out = sortie
 		try :
 			if isinstance(sortie.name, str) :
-				nom_fichier = Path(sortie.name)
+				chemin_fichier = Path(sortie.name)
 		except AttributeError : pass
 
-	if nom_fichier is None :
-		#date = datetime.now().strftime("%x_%X").replace(":", "-")
-		#fichier_out = Path(f"data/out/result_{date.replace("/", "-")}.vrp")
-		nom_fichier = Path(f"data/out/result_{datetime.now()}.vrp")
+	if chemin_fichier is None :
+		date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
+		chemin_fichier = Path(f"data/out/result_{date}.vrp")
 	if sortie is None :
-		fichier_out = nom_fichier
+		fichier_out = chemin_fichier
 
 
 
@@ -123,7 +121,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (nom_fichier.stem, positions, flotte, détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (chemin_fichier.stem, positions, flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
 	
 
@@ -134,15 +132,15 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 
 
 
-def fonction_traitement(nom_fichier, fichier_données) :
+def fonction_traitement(chemin_fichier, fichier_données) :
 	chemin = Path("data")
-	nom_fichier = Path(nom_fichier)
+	chemin_fichier = Path(chemin_fichier)
 
-	approximation_solution(fichier_données, CONSOLE, chemin/"out"/nom_fichier)
+	approximation_solution(fichier_données, CONSOLE, chemin/"out"/chemin_fichier)
 
 	return (
-		chemin/"out"/nom_fichier,
-		f"""<h2>{nom_fichier}</h2><img src="{chemin/'out'/(nom_fichier.stem + '.svg')}">"""
+		chemin/"out"/chemin_fichier,
+		f"""<h2>{chemin_fichier}</h2><img src="{chemin/'out'/(chemin_fichier.stem + '.svg')}">"""
 	)
 
 
