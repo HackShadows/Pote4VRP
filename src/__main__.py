@@ -106,7 +106,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 		date = datetime.now().strftime("%Y-%m-%d_%H-%M-%S_%f")
 		chemin_fichier = Path(f"data/out/result_{date}.vrp")
 	if sortie is None :
-		fichier_out = chemin_fichier
+		fichier_out = chemin_fichier.parent.parent/"out"/chemin_fichier.name
 
 
 
