@@ -240,6 +240,8 @@ class Trajet :
 			Indice du dernier client.
 		"""
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut <= ind_fin < self.nb_clients
+
+		assert self.maj_horaires(liste_clients=self.clients[ind_debut:ind_fin+1:-1] + self.clients[ind_fin+1:], horaires=self.horaires[:ind_debut])
 		
 		clients = self.clients
 		for i in range((ind_fin - ind_debut + 1)//2):
@@ -315,7 +317,7 @@ class Trajet :
 
 
 
-	def maj_horaires(self, indice :int, client :Client|None = None, modifie :bool = True) -> bool :
+	def maj_horaires(self, indice :int = 0, client :Client|None = None, modifie :bool = True, liste_clients :list[Client]|None = None, horaires :list[int]|None = None) -> bool :
 		"""
 		Ajoute 'client' dans la liste des horaires de livraison, ou en retire un à la position 'indice'.
 
@@ -327,6 +329,10 @@ class Trajet :
 			Client à ajouter, None pour retirer le client.
 		modifie : bool
 			True pour effectuer les modifications, False sinon.
+		liste_clients : list[Client]|None
+			Liste des clients en ajouter si connue, None sinon.
+		horaires : list[int]|None
+			Liste des horaires si connue, None sinon.
 
 		Renvoie
 		-------
@@ -340,6 +346,19 @@ class Trajet :
 		if indice < self.nb_clients: 
 			new_horaires = self.horaires[:indice]
 			clients += self.clients[indice:]
+		
+		if liste_clients is not None : 
+			assert isinstance(liste_clients, list)
+			clients = []
+			for cli in liste_clients:
+				assert isinstance(cli, Client)
+				clients.append(cli)
+		if horaires is not None : 
+			assert isinstance(horaires, list)
+			new_horaires = []
+			for horaire in horaires:
+				assert isinstance(horaire, int)
+				new_horaires.append(horaire)
 
 		for cli in clients:
 			precedent = new_horaires[-1] if len(new_horaires) > 0 else self.depot.intervalle_livraison[0]
