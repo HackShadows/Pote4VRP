@@ -8,7 +8,7 @@ class Client :
 
 	__slots__ = "id", "pos", "demande", "intervalle_livraison", "temps_livraison"
 
-	def __init__(self, id_ :str = "-1", pos :tuple[int, int] = (0, 0), intervalle_livraison :tuple[int, int] = (-1, -1), temps_livraison :int = 0, demande :int = 0) :
+	def __init__(self, id_ :str = "-1", pos :tuple[int, int] = (0, 0), intervalle_livraison :tuple[int, int] = (-1, -1), demande :int = 0, temps_livraison :int = 0) :
 		self.id = id_
 		self.pos = pos
 		self.demande = demande
@@ -43,7 +43,7 @@ def distance(client1 :Client, client2 :Client) -> float :
 
 class Trajet :
 
-	__slots__ = "longueur", "nb_clients", "clients", "depot", "marchandise"
+	__slots__ = "longueur", "nb_clients", "clients", "depot", "marchandise", "horaires"
 
 	def __init__(self, depot :Client = Client()) :
 		self.longueur = 0.0
@@ -51,6 +51,7 @@ class Trajet :
 		self.clients = []
 		self.depot = depot
 		self.marchandise = 0
+		self.horaires = []
 
 
 	def __repr__(self) -> str :
@@ -59,21 +60,20 @@ class Trajet :
 		return f"Trajet(longueur : {long:.2f}km, contient {nb} clients)"
 	
 	
-	def afficher(self, capacite :bool = False) :
+	def afficher(self, affichage :bool = False) :
 		"""
 		Affiche la longueur et le nombre de clients du trajet.
-		Affiche en plus la capacité si capacite = True, 
+		Affiche en plus les horaires de livraison si affichage = True, 
 		la liste ordonnée des clients du trajet sinon.
 
 		Paramètres
 		----------
-		capacite : bool
+		affichage : bool
 			Booléen permettant de préciser l'affichage.
 		"""
 		long = self.longueur
 		nb = self.nb_clients
-		capa = self.marchandise
-		print(f"Trajet(longueur : {long:.2f}km, contient {nb} clients, {capa if capacite else [e.id for e in self.clients]})")
+		print(f"Trajet(longueur : {long:.2f}km, contient {nb} clients, {self.horaires if affichage else [c.id for c in self.clients]})")
 
 
 
@@ -92,9 +92,13 @@ class Trajet :
 		assert isinstance(indice, int) and 0 <= indice
 
 		self.longueur += self.dist_ajouter_client(indice, client)
+		self.marchandise += client.demande
+		if indice >= self.nb_clients: self.maj_horaires([client])
+		else: 
+			self.horaires = self.horaires[:indice]
+			self.maj_horaires([client] + self.clients[indice:])
 		self.clients.insert(indice, client)
 		self.nb_clients += 1
-		self.marchandise += client.demande
 
 
 
@@ -117,6 +121,10 @@ class Trajet :
 		cli = self.clients.pop(indice)
 		self.nb_clients -= 1
 		self.marchandise -= cli.demande
+		if indice == self.nb_clients: self.horaires.pop(indice)
+		else:
+			self.horaires = self.horaires[:indice]
+			self.maj_horaires(self.clients[indice:])
 		return cli
 
 
@@ -309,6 +317,24 @@ class Trajet :
 			liste_clients.append(self.retirer_client(0))
 		
 		return liste_clients
+
+
+
+	def maj_horaires(self, clients :list[Client]) :
+		"""
+		Ajoute les horaires de livraison des clients de 'clients' aux horaires déjà existantes.
+
+		Paramètres
+		----------
+		clients : list[Client]
+			Liste des clients à ajouter.
+		"""
+		assert isinstance(clients, list)
+
+		for client in clients:
+			assert isinstance(client, Client)
+			if len(self.horaires) == 0 or self.horaires[-1] <= client.intervalle_livraison[0]: self.horaires.append(client.intervalle_livraison[0] + client.temps_livraison)
+			else: self.horaires.append(self.horaires[-1] + client.temps_livraison)
 
 
 
