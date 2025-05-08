@@ -45,15 +45,30 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 	assert isinstance(remplissage, float) and 0 < remplissage < 1
 	
 	flotte = Flotte(métadonnées["MAX_QUANTITY"])
-	trajet = Trajet(dépôt)
-	for i, cli in enumerate(clients) :
+	trajets = [Trajet(dépôt)]
+	for cli in clients :
+		continuer = True
+		a_ajouter = []
+		for j in range(len(trajets)):
+			if not continuer: break
+			if trajets[j].nb_clients > 0:
+				if trajets[j].marchandise > flotte.capacite * remplissage or trajets[j].horaires[-1] + cli.temps_livraison >= dépôt.intervalle_livraison[1]:
+					a_ajouter.append(j)
+					continue
+			for i in range(trajets[j].nb_clients+1):
+				if trajets[j].maj_horaires(i, cli, False):
+					trajets[j].ajouter_client(i, cli)
+					continuer = False
+					break
+		for i in a_ajouter[::-1]: flotte.ajouter_trajet(trajets.pop(i))
+		
+		if continuer:
+			trajets.append(Trajet(dépôt))
+			trajets[-1].ajouter_client(0, cli)
 
-		if trajet.marchandise > flotte.capacite * remplissage :
-			flotte.ajouter_trajet(trajet)
-			trajet = Trajet(dépôt)
-
-		trajet.ajouter_client(i, cli)
-	flotte.ajouter_trajet(trajet)
+	
+	for trajet in trajets: flotte.ajouter_trajet(trajet)
+	flotte.afficher(True)
 	
 	return flotte
 
@@ -155,7 +170,7 @@ def main_dev() :
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
-	num = fichiers[9]
+	num = fichiers[0]
 	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
 
 
