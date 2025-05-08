@@ -1,6 +1,5 @@
 from classes import Flotte
-from opérateurs import inter_exchange, inter_relocate, cross_exchange, deux_opt_flotte
-from opérateurs import effectuer_relocate, effectuer_exchange, effectuer_cross_exchange, effectuer_2_opt
+from opérateurs import effectuer_changements
 import matplotlib.pyplot as plt
 import numpy as np
 import time as t
@@ -67,64 +66,7 @@ def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, deta
 		text_lg.set_text(f"Longueur = {round(flotte.longueur)}km")
 		text_nb.set_text(f"Nombre de camions : {flotte.nb_trajets}")
 
-		exchange = inter_exchange(flotte)
-		relocate = inter_relocate(flotte)
-		cross_exch = cross_exchange(flotte)
-		deux_opt = deux_opt_flotte(flotte)
-		match [relocate[1], exchange[1], cross_exch[1], deux_opt[1]] :
-			case [None, None, None, None] :
-				ani_container["ani"].event_source.stop()
-			case [ind_relocate, None, None, None] :
-				effectuer_relocate(flotte, relocate[0], ind_relocate)
-			case [None, ind_exchange, None, None] :
-				effectuer_exchange(flotte, exchange[0], ind_exchange)
-			case [None, None, ind_cross_exch, None] :
-				effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [ind_relocate, ind_exchange, None, None] :
-				if relocate[0] < exchange[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_exchange(flotte, exchange[0], ind_exchange)
-			case [ind_relocate, None, ind_cross_exch, None] :
-				if relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [None, ind_exchange, ind_cross_exch, None] :
-				if exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [ind_relocate, ind_exchange, ind_cross_exch, None] :
-				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			
-			case [None, None, None, ind_2_opt] :
-				effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			
-			case [ind_relocate, None, None, ind_2_opt] :
-				if relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [None, ind_exchange, None, ind_2_opt] :
-				if exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [None, None, ind_cross_exch, ind_2_opt] :
-				if cross_exch[0] < deux_opt[0] : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			
-			case [ind_relocate, ind_exchange, None, ind_2_opt] :
-				if relocate[0] < exchange[0] and relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [ind_relocate, None, ind_cross_exch, ind_2_opt] :
-				if relocate[0] < deux_opt[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [None, ind_exchange, ind_cross_exch, ind_2_opt] :
-				if deux_opt[0] < exchange[0] and deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			
-			case [ind_relocate, ind_exchange, ind_cross_exch, ind_2_opt] :
-				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] and relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < cross_exch[0] and exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				elif deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+		if not effectuer_changements(flotte) : ani_container["ani"].event_source.stop()
 		
 
 		trajets = flotte.trajets
@@ -208,64 +150,7 @@ def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flot
 	lg = round(flotte.longueur, 2)
 
 	while continuer and it < 200 :
-		exchange = inter_exchange(flotte)
-		relocate = inter_relocate(flotte)
-		cross_exch = cross_exchange(flotte)
-		deux_opt = deux_opt_flotte(flotte)
-		match [relocate[1], exchange[1], cross_exch[1], deux_opt[1]] :
-			case [None, None, None, None] :
-				continuer = False
-			case [ind_relocate, None, None, None] :
-				effectuer_relocate(flotte, relocate[0], ind_relocate)
-			case [None, ind_exchange, None, None] :
-				effectuer_exchange(flotte, exchange[0], ind_exchange)
-			case [None, None, ind_cross_exch, None] :
-				effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [ind_relocate, ind_exchange, None, None] :
-				if relocate[0] < exchange[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_exchange(flotte, exchange[0], ind_exchange)
-			case [ind_relocate, None, ind_cross_exch, None] :
-				if relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [None, ind_exchange, ind_cross_exch, None] :
-				if exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [ind_relocate, ind_exchange, ind_cross_exch, None] :
-				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			
-			case [None, None, None, ind_2_opt] :
-				effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			
-			case [ind_relocate, None, None, ind_2_opt] :
-				if relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [None, ind_exchange, None, ind_2_opt] :
-				if exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [None, None, ind_cross_exch, ind_2_opt] :
-				if cross_exch[0] < deux_opt[0] : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			
-			case [ind_relocate, ind_exchange, None, ind_2_opt] :
-				if relocate[0] < exchange[0] and relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-			case [ind_relocate, None, ind_cross_exch, ind_2_opt] :
-				if relocate[0] < deux_opt[0] and relocate[0] < cross_exch[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			case [None, ind_exchange, ind_cross_exch, ind_2_opt] :
-				if deux_opt[0] < exchange[0] and deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				elif exchange[0] < cross_exch[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
-			
-			case [ind_relocate, ind_exchange, ind_cross_exch, ind_2_opt] :
-				if relocate[0] < exchange[0] and relocate[0] < cross_exch[0] and relocate[0] < deux_opt[0] : effectuer_relocate(flotte, relocate[0], ind_relocate)
-				elif exchange[0] < cross_exch[0] and exchange[0] < deux_opt[0] : effectuer_exchange(flotte, exchange[0], ind_exchange)
-				elif deux_opt[0] < cross_exch[0] : effectuer_2_opt(flotte, deux_opt[0], ind_2_opt)
-				else : effectuer_cross_exchange(flotte, cross_exch[0], ind_cross_exch)
+		continuer = effectuer_changements(flotte)
 		it += 1
 	
 	new_lg = f"{flotte.longueur:.02f}"
@@ -296,9 +181,9 @@ def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flot
 	ax.scatter(pos_x, pos_y, color='blue', label="Clients")
 	ax.scatter(pos_depot[0], pos_depot[1], color='red', label="Dépôt")
 
-	text_it = plt.text(0, max(pos_y)+2, "Itérations = " + str(it))
-	text_lg = plt.text(0, max(pos_y)+5, f"Longueur = {new_lg}km")
-	text_nb = plt.text(0, max(pos_y)+8, "Nombre de camions : " + str(flotte.nb_trajets))
+	plt.text(0, max(pos_y)+2, "Itérations = " + str(it))
+	plt.text(0, max(pos_y)+5, f"Longueur = {new_lg}km")
+	plt.text(0, max(pos_y)+8, "Nombre de camions : " + str(flotte.nb_trajets))
 
 	# Tracé des trajets
 	for i, pos in enumerate(segments) :
