@@ -186,6 +186,7 @@ def deux_opt(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 		cli01 = trajet.clients[i]
 		dist_tmp = distance(cli00, cli01)
 		for j in range(i+2, nb+1) :
+			if i == 0 and j == nb: continue
 			cli10 = trajet.clients[j-1] 
 			cli11 = trajet.clients[j] if j < nb else trajet.depot
 			dist = distance(cli00, cli10) + distance(cli01, cli11) - distance(cli10, cli11) - dist_tmp

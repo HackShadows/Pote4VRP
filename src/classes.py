@@ -239,7 +239,7 @@ class Trajet :
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut <= ind_fin < self.nb_clients
 		
 		clients = self.clients
-		for i in range((ind_fin - ind_debut)//2):
+		for i in range((ind_fin - ind_debut + 1)//2):
 			cli_tmp = clients[ind_debut+i]
 			clients[ind_debut+i] = clients[ind_fin-i]
 			clients[ind_fin-i] = cli_tmp

@@ -155,8 +155,8 @@ def main_dev() :
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
-	num = fichiers[0]
-	approximation_solution(f"data/in/data{num}.vrp", GRAPHIQUE)
+	num = fichiers[9]
+	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
 
 
 
