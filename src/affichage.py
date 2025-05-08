@@ -121,27 +121,18 @@ def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, deta
 
 
 
-def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flotte :Flotte, detail :bool = False) :
+def affichage_console(flotte :Flotte, detail :bool = False) :
 	"""
 	Calcule et affiche en console la solution approximée.
 
 	Paramètres
 	----------
-	nom_fichier : str
-		Nom du fichier initial.
-	pos_clients : list[tuple[int, int]]
-		Liste de tuples contenant les coordonnées (x, y) des clients.
 	flotte : Flotte
 		Flotte sur laquelle sont effectués les calculs.
 	detail : bool
 		Booléen permettant de spécifier si l'on souhaite un affichage détaillé.
 	"""
-	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte) and isinstance(detail, bool)
-	for tu in pos_clients:
-		assert isinstance(tu, tuple)
-		match tu:
-			case [int(), int()] : pass
-			case _ : raise AssertionError("pos_clients ne respecte pas le format attendu !")
+	assert isinstance(flotte, Flotte) and isinstance(detail, bool)
 	
 	t0 = t.time()
 	if detail: flotte.afficher(True)
@@ -165,8 +156,30 @@ def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flot
 	if t.time() - t0 < 1 : print(round((t.time() - t0)*1000), "ms")
 	else : print(round(t.time() - t0, 2), "s")
 
-	
 
+
+
+def sauvegarde_image_flotte(nom_fichier :str, pos_clients :list[tuple[int, int]], flotte :Flotte) :
+	"""
+	Crée et enregistre l'image de la flotte passée en paramètre.
+
+	Paramètres
+	----------
+	nom_fichier : str
+		Nom du fichier initial.
+	pos_clients : list[tuple[int, int]]
+		Liste de tuples contenant les coordonnées (x, y) des clients.
+	flotte : Flotte
+		Flotte à afficher.
+	"""
+	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte)
+	for tu in pos_clients:
+		assert isinstance(tu, tuple)
+		match tu:
+			case [int(), int()] : pass
+			case _ : raise AssertionError("pos_clients ne respecte pas le format attendu !")
+
+	lg = f"{flotte.longueur:.02f}"
 	points = np.array(pos_clients)
 	pos_depot = np.array(flotte.trajets[0].depot.pos)
 	segments = [np.array([pos_depot] + [client.pos for client in trajet.clients] + [pos_depot]) for trajet in flotte.trajets]
@@ -181,8 +194,8 @@ def affichage_console(nom_fichier :str, pos_clients :list[tuple[int, int]], flot
 	ax.scatter(pos_x, pos_y, color='blue', label="Clients")
 	ax.scatter(pos_depot[0], pos_depot[1], color='red', label="Dépôt")
 
-	plt.text(0, max(pos_y)+2, "Itérations = " + str(it))
-	plt.text(0, max(pos_y)+5, f"Longueur = {new_lg}km")
+	# plt.text(0, max(pos_y)+2, "Itérations = " + str(it))
+	plt.text(0, max(pos_y)+5, f"Longueur = {lg}km")
 	plt.text(0, max(pos_y)+8, "Nombre de camions : " + str(flotte.nb_trajets))
 
 	# Tracé des trajets

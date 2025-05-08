@@ -1,5 +1,5 @@
 from classes import Flotte, Trajet, Client
-from affichage import affichage_console, affichage_graphique
+from affichage import affichage_console, affichage_graphique, sauvegarde_image_flotte
 import filesIO as fio
 
 from serveur import lancer_serveur
@@ -121,8 +121,9 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
-	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (chemin_fichier.stem, positions, flotte, détails)
+	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
+	sauvegarde_image_flotte(chemin_fichier.stem, positions, flotte)
 	
 
 
@@ -155,7 +156,7 @@ def main_dev() :
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
 	num = fichiers[0]
-	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
+	approximation_solution(f"data/in/data{num}.vrp", GRAPHIQUE)
 
 
 
