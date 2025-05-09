@@ -77,7 +77,7 @@ class Trajet :
 
 
 
-	def ajouter_client(self, indice :int, client :Client) :
+	def ajouter_client(self, indice :int, client :Client, maj_horaire :bool|None = True) :
 		"""
 		Ajoute un client à la feuille de route, à la position 'indice'.
 
@@ -87,19 +87,24 @@ class Trajet :
 			Indice où insérer le client.
 		client : Client
 			Client à ajouter dans l'itinéraire de livraison.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 		"""
-		assert isinstance(client, Client)
+		assert isinstance(client, Client) and (maj_horaire is None or isinstance(maj_horaire, bool))
 		assert isinstance(indice, int) and 0 <= indice
 
 		self.longueur += self.dist_ajouter_client(indice, client)
 		self.marchandise += client.demande
-		assert self.maj_horaires(indice, client)
 		self.clients.insert(indice, client)
 		self.nb_clients += 1
+		if maj_horaire is not None:
+			if maj_horaire: indice = 0
+			assert self.maj_horaires(indice)
 
 
 
-	def retirer_client(self, indice :int) -> Client :
+	def retirer_client(self, indice :int, maj_horaire :bool|None = True) -> Client :
 		"""
 		Retire un client de l'itinéraire.
 
@@ -107,19 +112,24 @@ class Trajet :
 		----------
 		indice : int
 			Indice du client dans la liste non vide 'clients'.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 
 		Renvoie
 		-------
 		Le client se trouvant à l'indice passé en paramètre.
 		"""
-		assert isinstance(indice, int) and 0 <= indice < self.nb_clients
+		assert isinstance(indice, int) and 0 <= indice < self.nb_clients and (maj_horaire is None or isinstance(maj_horaire, bool))
 
 		self.longueur += self.dist_retirer_client(indice)
 		cli = self.clients.pop(indice)
 		self.nb_clients -= 1
 		self.marchandise -= cli.demande
-		if indice == self.nb_clients: assert isinstance(self.horaires.pop(indice), int)
-		else: assert self.maj_horaires(indice)
+		if maj_horaire is not None:
+			if maj_horaire: indice = 0
+			if indice == self.nb_clients: assert isinstance(self.horaires.pop(indice), int)
+			else: assert self.maj_horaires(indice)
 		return cli
 
 
@@ -326,7 +336,7 @@ class Trajet :
 		indice : int
 			Indice où ajouter le client.
 		client : Client|None
-			Client à ajouter, None pour retirer le client.
+			Pour tester l'ajout d'un client (force modifie à False).
 		modifie : bool
 			True pour effectuer les modifications, False sinon.
 		liste_clients : list[Client]|None
@@ -338,14 +348,16 @@ class Trajet :
 		-------
 		True si la modification peut être effectuée, False sinon.
 		"""
-		assert isinstance(client, Client) or client is None
 		assert isinstance(indice, int) and 0 <= indice and isinstance(modifie, bool)
+		if client is not None:
+			assert isinstance(client, Client)
+			modifie = False
 
-		clients = [client] if client is not None else []
+		clients = [] if client is None else [client]
 		new_horaires = self.horaires.copy()
-		if indice < self.nb_clients: 
-			new_horaires = self.horaires[:indice]
-			clients += self.clients[indice:]
+		if indice >= self.nb_clients: indice = self.nb_clients - 1
+		new_horaires = self.horaires[:indice]
+		clients += self.clients[indice:]
 		
 		if liste_clients is not None : 
 			assert isinstance(liste_clients, list)
@@ -367,7 +379,7 @@ class Trajet :
 		
 		if modifie: self.horaires = new_horaires.copy()
 		
-		return client is None or new_horaires[-1] <= self.depot.intervalle_livraison[1]
+		return new_horaires[-1] <= self.depot.intervalle_livraison[1]
 
 
 
