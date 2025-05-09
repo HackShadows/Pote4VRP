@@ -77,7 +77,7 @@ class Trajet :
 
 
 
-	def ajouter_client(self, indice :int, client :Client, maj_horaire :bool|None = True) :
+	def ajouter_client(self, indice :int, client :Client, maj_horaire :bool|None = False) :
 		"""
 		Ajoute un client à la feuille de route, à la position 'indice'.
 
@@ -104,7 +104,7 @@ class Trajet :
 
 
 
-	def retirer_client(self, indice :int, maj_horaire :bool|None = True) -> Client :
+	def retirer_client(self, indice :int, maj_horaire :bool|None = False) -> Client :
 		"""
 		Retire un client de l'itinéraire.
 
@@ -250,14 +250,14 @@ class Trajet :
 			Indice du dernier client.
 		"""
 		assert isinstance(ind_debut, int) and isinstance(ind_fin, int) and 0 <= ind_debut <= ind_fin < self.nb_clients
-
-		assert self.maj_horaires(liste_clients=self.clients[ind_debut:ind_fin+1:-1] + self.clients[ind_fin+1:], horaires=self.horaires[:ind_debut])
 		
 		clients = self.clients
 		for i in range((ind_fin - ind_debut + 1)//2):
 			cli_tmp = clients[ind_debut+i]
 			clients[ind_debut+i] = clients[ind_fin-i]
 			clients[ind_fin-i] = cli_tmp
+
+		assert self.maj_horaires(ind_debut)
 			
 
 
@@ -286,7 +286,7 @@ class Trajet :
 
 
 
-	def ajouter_tab_client(self, tab_clients :list[Client]) :
+	def ajouter_tab_client(self, tab_clients :list[Client], maj_horaire :bool|None = False) :
 		"""
 		Ajoute une liste de clients au début de la feuille de route.
 
@@ -294,16 +294,20 @@ class Trajet :
 		----------
 		tab_clients : list[Client]
 			Liste ordonnée des clients à ajouter dans l'itinéraire de livraison.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 		"""
-		assert isinstance(tab_clients, list)
+		assert isinstance(tab_clients, list) and (maj_horaire is None or isinstance(maj_horaire, bool))
 
-		for client in tab_clients[::-1] :
+		for client in tab_clients[:0:-1] :
 			assert isinstance(client, Client)
-			self.ajouter_client(0, client)
+			self.ajouter_client(0, client, None)
+		self.ajouter_client(0, tab_clients[0], maj_horaire)
 
 
 
-	def retirer_tab_client(self, indice :int) -> list[Client] :
+	def retirer_tab_client(self, indice :int, maj_horaire :bool|None = False) -> list[Client] :
 		"""
 		Retire une liste de clients consécutifs de l'itinéraire.
 
@@ -311,17 +315,21 @@ class Trajet :
 		----------
 		indice : int
 			Indice du dernier client.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 
 		Renvoie
 		-------
 		La liste ordonnée des clients retirés du trajet.
 		"""
-		assert isinstance(indice, int)
+		assert isinstance(indice, int) and (maj_horaire is None or isinstance(maj_horaire, bool))
 		assert 1 <= indice < self.nb_clients
 
 		liste_clients = []
-		for _ in range(indice + 1) :
-			liste_clients.append(self.retirer_client(0))
+		for _ in range(indice) :
+			liste_clients.append(self.retirer_client(0, None))
+		liste_clients.append(self.retirer_client(0, maj_horaire))
 		
 		return liste_clients
 
@@ -354,8 +362,7 @@ class Trajet :
 			modifie = False
 
 		clients = [] if client is None else [client]
-		new_horaires = self.horaires.copy()
-		if indice >= self.nb_clients: indice = self.nb_clients - 1
+		
 		new_horaires = self.horaires[:indice]
 		clients += self.clients[indice:]
 		

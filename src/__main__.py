@@ -68,7 +68,6 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 
 	
 	for trajet in trajets: flotte.ajouter_trajet(trajet)
-	flotte.afficher(True)
 	
 	return flotte
 
@@ -170,7 +169,7 @@ def main_dev() :
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
-	num = fichiers[0]
+	num = fichiers[9]
 	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
 
 

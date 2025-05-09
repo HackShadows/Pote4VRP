@@ -203,7 +203,7 @@ def deux_opt(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 			dist = distance(cli00, cli10) + distance(cli01, cli11) - distance(cli10, cli11) - dist_tmp
 			if dist < mini and trajet.maj_horaires(
 						modifie=False, 
-						liste_clients=trajet.clients[i:j:-1] + trajet.clients[j:], 
+						liste_clients=[trajet.clients[k] for k in range(j-1, i-1, -1)] + trajet.clients[j:], 
 						horaires=trajet.horaires[:i]):
 				mini = dist
 				ind = (i, j)
@@ -305,8 +305,8 @@ def effectuer_relocate(flotte :Flotte, new_dist :float, indice :tuple[tuple[int,
 	flotte.longueur += new_dist
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
-			cli = trajets[i].retirer_client(j)
-			trajets[x].ajouter_client(y, cli)
+			cli = trajets[i].retirer_client(j, None if i == x else False)
+			trajets[x].ajouter_client(y, cli, i==x)
 			if trajets[i].nb_clients == 0: flotte.retirer_trajet(i)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
@@ -335,10 +335,10 @@ def effectuer_exchange(flotte :Flotte, new_dist :float, indice :tuple[tuple[int,
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
 			cli1 = trajets[i].clients[j]
-			cli2 = trajets[x].retirer_client(y)
-			trajets[x].ajouter_client(y, cli1)
-			trajets[i].retirer_client(j)
-			trajets[i].ajouter_client(j, cli2)
+			cli2 = trajets[x].retirer_client(y, None)
+			trajets[x].ajouter_client(y, cli1, None if i == x else True)
+			trajets[i].retirer_client(j, None)
+			trajets[i].ajouter_client(j, cli2, True)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
 
@@ -365,10 +365,10 @@ def effectuer_cross_exchange(flotte :Flotte, new_dist :float, indice :tuple[tupl
 	flotte.longueur += new_dist
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
-			tab_cli1 = trajets[i].retirer_tab_client(j)
-			tab_cli2 = trajets[x].retirer_tab_client(y)
-			trajets[x].ajouter_tab_client(tab_cli1)
-			trajets[i].ajouter_tab_client(tab_cli2)
+			tab_cli1 = trajets[i].retirer_tab_client(j, None)
+			tab_cli2 = trajets[x].retirer_tab_client(y, None)
+			trajets[x].ajouter_tab_client(tab_cli1, True)
+			trajets[i].ajouter_tab_client(tab_cli2, True)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
 
