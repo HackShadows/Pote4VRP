@@ -1,0 +1,28 @@
+{% extends "base.html" %}
+
+
+
+
+
+{% block contenu %}
+
+
+
+<div class="erreur">
+	<h2>{{ CONFIG.erreur }}</h2>
+	<p>{{ CONFIG.message_erreur }}</p>
+</div>
+
+
+
+{% endblock %}
+
+
+
+
+
+{% block manuel %}
+
+{% include "manuel_erreur.html" %}
+
+{% endblock %}

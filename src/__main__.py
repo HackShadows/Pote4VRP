@@ -3,6 +3,7 @@ from affichage import affichage_console, affichage_graphique, sauvegarde_image_f
 import filesIO as fio
 
 from serveur import lancer_serveur
+from io import StringIO
 
 from pathlib import Path
 import os
@@ -59,7 +60,7 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 
 
 
-def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Optional[str|Path|IO[str]] = None) :
+def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sortie :Optional[str|Path|IO[str]] = None) :
 	"""
 	Calcule et affiche un itinéraire de livraison proche de l'optimal.
 	
@@ -133,16 +134,13 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = 1, sortie :Opt
 
 
 
-def fonction_traitement(chemin_fichier, fichier_données) :
-	chemin = Path("data")
-	chemin_fichier = Path(chemin_fichier)
-
-	approximation_solution(fichier_données, CONSOLE, chemin/"out"/chemin_fichier)
-
-	return (
-		chemin/"out"/chemin_fichier,
-		f"""<h2>{chemin_fichier}</h2><img src="{chemin/'out'/(chemin_fichier.stem + '.svg')}">"""
-	)
+def fonction_traitement(nom_fichier :str, fichier_données :bytes) -> Optional[str] :
+	try :
+		fichier_données = StringIO(fichier_données.decode())
+		approximation_solution(fichier_données, CONSOLE, "data/out/" + nom_fichier + ".vrp")
+	except Exception as e :
+		return repr(e)
+	else : return None
 
 
 
@@ -167,5 +165,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if True : main_dev()
+	if False : main_dev()
 	else : main()

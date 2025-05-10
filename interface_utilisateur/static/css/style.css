@@ -80,6 +80,7 @@ header > button > svg {
 
 main {
 	display: flex;
+	flex-flow: column nowrap;
 	justify-content: center;
 	align-items: center;
 	height: 100%;
@@ -216,12 +217,30 @@ main {
 	border-top: solid 1px #CCB;
 	border-top-right-radius: 5px;
 }
+#form-fichier-liste fichier-choisi span:last-child {
+	font-size: .9em;
+	color: #344;
+}
+#form-fichier-liste fichier-choisi button {
+	padding: 0;
+	border: none;
+	margin: 0;
+	background-color: transparent;
+	color: black;
+}
+#form-fichier-liste fichier-choisi button:hover {
+	color: red;
+}
+#form-fichier-liste fichier-choisi svg {
+	width: 24px;
+	height: 24px;
+}
 
 
 
 
 
-#form-soumettre {
+#form-footer {
 	display: flex;
 	flex-flow: row nowrap;
 	justify-content: space-between;
@@ -235,14 +254,14 @@ main {
 
 
 
-#form-soumettre > span {
+#form-footer > span {
 	margin: .9em 0 1.1em 0;
 	font-size: 1em;
 }
 
 
 
-#form-soumettre label {
+#form-footer label {
 	display: flex;
 	flex-flow: row nowrap;
 	align-content: center;
@@ -253,14 +272,14 @@ main {
 	color: white;
 	background-color: #55C;
 }
-#form-soumettre label:hover {
+#form-footer label:hover {
 	background-color: #66D;
 }
-#form-soumettre input[type=submit] {
+#form-footer input[type=submit] {
 	display: none;
 }
 
-#form-soumettre label svg {
+#form-footer label svg {
 	width: 30px;
 	height: 30px;
 	margin: auto 0 auto 10px;

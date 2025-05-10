@@ -1,0 +1,58 @@
+{% extends "base.html" %}
+
+
+
+
+
+{% block contenu %}
+
+
+
+<span id="tout-telecharger" class="lien-mort">Tout télécharger</span>
+
+
+
+<table id="table-resulats">
+	<thead>
+		<tr>
+			<th>Fichier</th>
+			<th>Status</th>
+			<th>Résultat</th>
+			<th>Télécharger</th>
+		</tr>
+	</thead>
+	<tbody>
+	{% for tache in CONFIG.taches %}
+		<tr id="{{ tache.id }}">
+			<td>{{ tache.nom }}</td>
+			{% if tache.état == "EN_COURS" %}
+				<td><div class="en-cours">En cours de traitement</div></td>
+				<td><div class="animation-chargement">[Animation]</div></td>
+				<td><span class="lien-mort">Télécharger</span></td>
+			{% elif tache.état == "SUCCES" %}
+				<td><div class="succes">Terminé avec succès</div></td>
+				<td><img src="resultat/{{ tache.id }}.svg" alt="résultat du traitement"></td>
+				<td><a href="resultat/{{ tache.id }}.vrp" download>Télécharger</a></td>
+			{% else %}
+				<td><div class="erreur">Une erreur c'est produite</div></td>
+				<td><div class="message-erreur">{{ tache.message_erreur }}</div></td>
+				<td><span class="lien-mort">Télécharger</span></td>
+			{% endif %}
+		</tr>
+	{% endfor %}
+	</tbody>
+</table>
+
+
+
+{% endblock %}
+
+
+
+
+
+{% block manuel %}
+
+{% include "manuel_chargement.html" %}
+
+{% endblock %}

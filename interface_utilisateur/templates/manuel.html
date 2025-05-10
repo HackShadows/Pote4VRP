@@ -1,0 +1,22 @@
+<div>
+	<button onclick="hideHelp()">
+		<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+			<path fill="none" stroke="black" stroke-linecap="round" stroke-linejoin="round" stroke-miterlimit="10" stroke-width="1.5" d="m7.757 16.243l8.486-8.486m0 8.486L7.757 7.757M22 12c0 5.523-4.477 10-10 10S2 17.523 2 12S6.477 2 12 2s10 4.477 10 10"/>
+		</svg>
+	</button>
+
+
+	<section>
+	<h2>A quoi sert cette application ?</h2>
+	<p>
+		Ce logiciel permet d'optimiser la logistique de livraison de vos dépôts de marchandises.<br><br>
+		<i>Étape 1 :</i> Aller sur la page d'accueil et déposer vos listes de clients au format vrp<br>
+		<i>Étape 2 :</i> Lancer l'optimisation en cliquant sur le bouton "Optimiser"<br>
+		<i>Étape 3 :</i> Télécharger la feuille de route optimisée
+	</p>
+	</section>
+	<section>
+		<h2>Où suis-je ?</h2>
+		{% block ou_suis_je %}{% endblock %}
+	</section>
+</div>

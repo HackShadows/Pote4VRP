@@ -173,6 +173,8 @@ def sauvegarde_image_flotte(nom_fichier :str, pos_clients :list[tuple[int, int]]
 		Flotte à afficher.
 	"""
 	assert isinstance(pos_clients, list) and isinstance(flotte, Flotte)
+	plt.switch_backend('Agg') # Enlève l'affichage : Evite les crash quand plusieurs thread
+
 	for tu in pos_clients:
 		assert isinstance(tu, tuple)
 		match tu:
