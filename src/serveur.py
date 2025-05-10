@@ -688,22 +688,17 @@ def lancer_serveur(fonction_traitement :Callable[[str, bytes], Optional[str]], p
 	def ouvrir_navigateur() :
 		time.sleep(1)
 		webbrowser.open_new_tab(url)
-	def _fonction_traitement(tâche :Tâche) :
-		print(f"Processing task {tâche.id} : {tâche.nom}")
-		time.sleep(5)
-		tâche.état = Tâche.Etat.SUCCES
-		tâche.données.close()
 
 
-	#thread = Thread(target=ouvrir_navigateur)
+	thread = Thread(target=ouvrir_navigateur)
 	try:
 		with ServeurVRP(addresse_serveur, TraitementRequêteVRP, fonction_traitement) as serveur_web :
-			#thread.start()
+			thread.start()
 			print("serve 2")
 			serveur_web.serve_forever()
 	except KeyboardInterrupt:
 		pass
-	#thread.join()
+	thread.join()
 
 
 	return url
