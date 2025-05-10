@@ -2,7 +2,7 @@ from http.server import ThreadingHTTPServer, BaseHTTPRequestHandler
 from urllib.parse import urlparse
 import legacy_cgi
 import mimetypes
-import base64, enum, hashlib, random, struct
+import base64, enum, hashlib, os, random, struct
 from queue import Queue
 from zipfile import ZipFile
 
@@ -15,6 +15,10 @@ from pathlib import Path
 from threading import Thread
 import time
 import webbrowser
+
+
+
+mimetypes.add_type("text/plain", ".vrp")
 
 
 
@@ -452,7 +456,6 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 
 	def listen(self, client) :
-		self.websocket.send(f"resultats/{id(client)}_{client.tâches[0].id}.zip") # fichier .zip pour tout télécharger
 		tâche = client.queue.get()
 		while tâche is not None :
 			self.websocket.send(f"{id(client)}_{tâche.id}_{tâche.nom}:{int(tâche.état == Tâche.Etat.SUCCES)}:{tâche.message_erreur}")
@@ -497,7 +500,32 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 				case Client.State.FINISHED :
 					template = self.server.environnement.get_template("resultats.html")
-					self.serve_content(".html", template.render(CONFIG = {"page" : "resultats", "tout" : f"resultats/{id(client)}_{client.tâches[0].id}.zip"}).encode())
+					config = {
+						"page" : "resultats",
+						"taches" : [{
+							"id" : f"{id(client)}_{tâche.id}_{tâche.nom}",
+							"nom" : tâche.nom,
+							"état" : tâche.état.name,
+							"message_erreur" : tâche.message_erreur,
+						} for tâche in client.tâches]
+					}
+					self.serve_content(".html", template.render(CONFIG = config).encode())
+
+
+
+		elif path == "/resultats" and client.état is not Client.State.MAIN_PAGE :
+			self.serve_file(f"data/out/{id(client)}_{client.tâches[0].id}.zip")
+
+		elif path.startswith("/resultats") and client.état is not Client.State.MAIN_PAGE and path.count("/") > 1 :
+			rel_path = Path(*rel_path.parts[1:])
+
+			if path.endswith(('.svg', '.vrp')) :
+				base_path = Path("data/out")
+				if self.is_path_safe(base_path, rel_path) :
+					self.serve_file(base_path / rel_path)
+				else : self.send_reponse(404)
+
+			else : self.serve_unknown_page(path)
 
 
 
@@ -517,9 +545,6 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 			if self.is_path_safe(base_path, rel_path) :
 				self.serve_file(base_path / rel_path)
 			else : self.send_response(404)
-
-		elif path.endswith('.svg') :
-			self.serve_file(rel_path)
 
 
 		else : self.serve_unknown_page(path)
@@ -546,6 +571,23 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 			self.send_response(200)
 			self.end_headers()
+
+		elif self.path == "/" and client.état is Client.State.FINISHED :
+			form = legacy_cgi.FieldStorage(
+				fp=self.rfile,
+				headers=self.headers,
+				environ={
+					'REQUEST_METHOD': 'POST',
+					'CONTENT_TYPE': self.headers['Content-Type'],
+				}
+			)
+			print(form)
+			if "accueil" in form.keys() :
+				client.état = Client.State.MAIN_PAGE
+				template = self.server.environnement.get_template("accueil.html")
+				self.serve_content(".html", template.render(CONFIG = {"page" : "accueil"}).encode())
+
+			else : self.serve_unknown_page(self.path)
 
 		else : self.serve_unknown_page(self.path)
 
@@ -623,6 +665,10 @@ class ServeurVRP(ThreadingHTTPServer) :
 	def __init__(self, addresse               :tuple[str, int]
 	                 , handler                :BaseHTTPRequestHandler
 	                 , fonction_de_traitement :Callable[[str, IO[str]], tuple[str, Optional[str]]]) :
+
+		for file in os.listdir("data/out") :
+			if os.path.isfile(f"data/out/{file}") :
+				os.unlink(f"data/out/{file}")
 
 		self.traitement    = fonction_de_traitement
 		self.clients       = dict()

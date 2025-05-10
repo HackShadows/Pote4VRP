@@ -81,9 +81,9 @@ header > button > svg {
 main {
 	display: flex;
 	flex-flow: column nowrap;
-	justify-content: center;
 	align-items: center;
 	height: 100%;
+	overflow-y: scroll;
 }
 
 
@@ -98,7 +98,7 @@ main {
 	width: 50%;
 	padding: 5vmin 0;
 	border: dashed red 5px;
-	margin-bottom: 7vmin;
+	margin: auto; /* bottom: 7vmin; */
 	border-radius: 100px;
 	background-color: #0001;
 }
@@ -335,4 +335,78 @@ main {
 #page-aide button svg {
 	width: 40px;
 	height: 40px;
+}
+
+
+
+
+
+
+
+#barre-resultat {
+	display: flex;
+	flex-flow: row nowrap;
+	justify-content: center;
+	align-items: center;
+	position: relative;
+	width: 100%;
+	margin-top: 2rem;
+	margin-bottom: 4rem;
+}
+#tout-telecharger {
+	padding: .5rem;
+	border: solid 3px #501;
+	border-radius: 3px;
+	vertical-align: center;
+	text-align: center;
+	font-size: 2rem;
+	text-decoration: none;
+	color: white;
+	background-color: #C56;
+}
+#tout-telecharger:hover {
+	background-color: #A56;
+}
+#tout-telecharger.lien-mort {
+	background-color: #A99;
+}
+#tout-telecharger:.lien-morthover {
+	background-color: #A99;
+}
+#barre-resultat form {
+	position: absolute;
+	top: 0;
+	left: 10px;
+	padding: .3rem 1rem;
+	border: solid black 3px;
+	border-radius: 10px;
+	background-color: #AAAA;
+}
+#barre-resultat form:hover {
+	background-color: #8888;
+}
+#barre-resultat form label {
+	display: contents;
+}
+#barre-resultat form label input {
+	display: none;
+}
+
+
+
+
+
+#table-resultats {
+	border-spacing: 20px;
+	vertical-align: center;
+	text-align: center;
+}
+#table-resultats tr td {
+	padding: 0 .5rem;
+}
+#table-resultats td img {
+	width: 30vw;
+}
+#table-resultats thead th {
+	border-bottom: solid black 3px;
 }

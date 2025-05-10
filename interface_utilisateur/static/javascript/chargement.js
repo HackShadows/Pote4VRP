@@ -1,5 +1,4 @@
 let socket;
-let tout_telecharger_lien;
 
 
 
@@ -19,7 +18,7 @@ function miseAJourTacheSucces(id)
 	resultat.removeChild(resultat.firstChild);
 	
 	let img = document.createElement("img");
-	img.setAttribute("src", `resultat/${id}.svg`);
+	img.setAttribute("src", `resultats/${id}.svg`);
 	img.setAttribute("alt", "résultat du traitement");
 	resultat.appendChild(img);
 
@@ -28,7 +27,7 @@ function miseAJourTacheSucces(id)
 	telecharger.removeChild(telecharger.firstChild);
 
 	let link = document.createElement("a");
-	link.setAttribute("href", `resultat/${id}.vrp`);
+	link.setAttribute("href", `resultats/${id}.vrp`);
 	link.toggleAttribute("download");
 	link.textContent = "Télecharger";
 	telecharger.appendChild(link);
@@ -62,11 +61,31 @@ function chaqueTacheFinie()
 	let telecharger_tout = document.getElementById("tout-telecharger");
 
 	let lien = document.createElement("a");
-	lien.setAttribute("href", tout_telecharger_lien);
+	lien.setAttribute("id", "tout-telecharger")
+	lien.setAttribute("href", "resultats");
 	lien.toggleAttribute("download");
 	lien.textContent = "Tout télécharger";
 
-	telecharger_tout.replaceChild(telecharger_tout.firstChild, lien);
+	telecharger_tout.parentElement.replaceChild(lien, telecharger_tout);
+
+
+	let div = document.getElementById("barre-resultat");
+
+	let form = document.createElement("form");
+	form.setAttribute("method", "POST");
+	form.setAttribute("action", "/");
+
+	let label = document.createElement("label");
+	label.textContent = "Retour à l'Accueil";
+
+	let input = document.createElement("input");
+	input.setAttribute("type", "submit");
+	input.setAttribute("name", "accueil");
+	input.setAttribute("value", "none");
+
+	label.appendChild(input);
+	form.appendChild(label);
+	div.appendChild(form);
 }
 
 
@@ -84,13 +103,6 @@ function parseMessage(event)
 		miseAJourTacheErreur(id, message_erreur);
 	}
 }
-function premierMessage(event)
-{
-	console.log('Server says: ' + event.data);
-
-	tout_telecharger_lien = event.data;
-	socket.onmessage = parseMessage;
-}
 
 
 
@@ -102,10 +114,12 @@ function connecteWebSocket()
 		console.log('WebSocket connection established');
 	};
 
-	socket.onmessage = premierMessage;
+	socket.onmessage = parseMessage;
 
 	socket.onclose = function() {
 		console.log('WebSocket connection closed');
+
+		chaqueTacheFinie();
 	};
 }
 
