@@ -38,7 +38,7 @@ pip install -r requirements.in
 Utilisation
 -----------
 
-Pour lancer l’application, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que vous avez activé l’environnement.
+Pour lancer l’application, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que  l’environnement est activé.
 Il suffit de taper la commande
 ```sh
 python3 src
@@ -48,8 +48,8 @@ L’application devrait automatiquement s'ouvrir dans votre navigateur par défa
 Quand vous quittez l’application, **pensez à bien à l’arrêter** en tapant `^C` dans le terminal où elle s’exécute.
 
 Tests
-——
-Pour lancer les tests, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que vous avez activé l’environnement.
+-----
+Pour lancer les tests, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que l’environnement est activé.
 Il suffit de taper la commande :
 ```sh
 python3 -m unittest src/test # en théorie
