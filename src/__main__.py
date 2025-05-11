@@ -182,7 +182,12 @@ def main_dev() :
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
 	num = fichiers[0]
-	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, True, 0.5, True)
+	
+	contrainte_capacite = True
+	remplissage_initial = 0.5
+	contrainte_temps = True
+	
+	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
 
 
 
