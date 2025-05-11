@@ -15,11 +15,12 @@ from typing import Any, IO, Optional
 
 
 
-AFFICHAGE = 0b_01
-CONSOLE   = 0b_00
-GRAPHIQUE = 0b_01
+AFFICHAGE = 0b_001
+CONSOLE   = 0b_000
+GRAPHIQUE = 0b_001
 
-DETAILS   = 0b_10
+DETAILS = 0b_010
+VISUEL  = 0b_100
 
 
 
@@ -124,7 +125,8 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 	détails = bool(mode & DETAILS)
 	if   (mode & AFFICHAGE) == CONSOLE   : affichage_console (flotte, détails)
 	elif (mode & AFFICHAGE) == GRAPHIQUE : affichage_graphique (positions, flotte, détails)
-	sauvegarde_image_flotte(chemin_fichier.stem, positions, flotte)
+
+	if mode & VISUEL : sauvegarde_image_flotte(chemin_fichier.stem, positions, flotte)
 	
 
 
@@ -137,7 +139,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 def fonction_traitement(nom_fichier :str, fichier_données :bytes) -> Optional[str] :
 	try :
 		fichier_données = StringIO(fichier_données.decode())
-		approximation_solution(fichier_données, CONSOLE, "data/out/" + nom_fichier + ".vrp")
+		approximation_solution(fichier_données, CONSOLE|VISUEL, "data/out/" + nom_fichier + ".vrp")
 	except Exception as e :
 		return repr(e)
 	else : return None
