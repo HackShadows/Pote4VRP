@@ -32,7 +32,10 @@ def intra_relocate(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 
 			dist_tmp2 = dist_tmp + trajet.dist_ajouter_client(j, cli)
 
-			if dist_tmp2 < mini:
+			if dist_tmp2 < mini and trajet.maj_horaires(
+						modifie=False, 
+						liste_clients=trajet.clients[i+1:j] + [cli] + trajet.clients[j:] if j > i else [cli] + trajet.clients[j:i] + trajet.clients[i+1:], 
+						horaires=trajet.horaires[:min(i, j)]):
 				mini = dist_tmp
 				ind = (i, j if j < i else j-1)
 	
@@ -71,10 +74,11 @@ def inter_relocate(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 			else :
 				for j, c in enumerate(t1.clients) :
 					tmp = t1.dist_retirer_client(j)
+					if not t1.maj_horaires(indice=j, modifie=False): continue
 					for y in range(t2.nb_clients+1) :
-						if t2.marchandise + c.demande <= flotte.capacite :
+						if t2.marchandise + c.demande <= flotte.capacite and t2.maj_horaires(indice=y, client=c, modifie=False) :
 							tmp2 = tmp + t2.dist_ajouter_client(y, c)
-							if tmp2 < mini :
+							if tmp2 < mini:
 								mini = tmp2
 								ind = ((i, j), (x, y))
 	
@@ -107,13 +111,19 @@ def intra_exchange(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 		
 		cli_tmp = trajet.clients[i+1]
 		tmp = trajet.dist_remplacer_client(i, cli_tmp) + trajet.dist_remplacer_client(i+1, cli) + 3*distance(cli, cli_tmp)
-		if tmp < mini :
+		if tmp < mini and trajet.maj_horaires(
+					modifie=False, 
+					liste_clients=[cli_tmp, cli] + trajet.clients[i+1:], 
+					horaires=trajet.horaires[:i]):
 			mini = tmp
 			ind = (i, i+1)
 		
 		for j in range(i+2, nb) :
 			tmp = trajet.dist_remplacer_client(i, trajet.clients[j]) + trajet.dist_remplacer_client(j, cli)
-			if tmp < mini :
+			if tmp < mini and trajet.maj_horaires(
+						modifie=False, 
+						liste_clients=[trajet.clients[j]] + trajet.clients[i+1:j] + [cli] + trajet.clients[j+1:], 
+						horaires=trajet.horaires[:i]):
 				mini = tmp
 				ind = (i, j)
 	
@@ -153,7 +163,8 @@ def inter_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 					for y, c2 in enumerate(t2.clients) :
 						if t1.marchandise - c1.demande + c2.demande <= flotte.capacite and t2.marchandise - c2.demande + c1.demande <= flotte.capacite :
 							tmp = t1.dist_remplacer_client(j, c2) + t2.dist_remplacer_client(y, c1)
-							if tmp < mini :
+							if tmp < mini and t2.maj_horaires(modifie=False, liste_clients=[c1]+t2.clients[y+1:], horaires=t2.horaires[:y]) \
+										and t1.maj_horaires(modifie=False, liste_clients=[c2]+t1.clients[j+1:], horaires=t1.horaires[:j]) :
 								mini = tmp
 								ind = ((i, j), (x+i, y))
 	
@@ -190,7 +201,10 @@ def deux_opt(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 			cli10 = trajet.clients[j-1] 
 			cli11 = trajet.clients[j] if j < nb else trajet.depot
 			dist = distance(cli00, cli10) + distance(cli01, cli11) - distance(cli10, cli11) - dist_tmp
-			if dist < mini :
+			if dist < mini and trajet.maj_horaires(
+						modifie=False, 
+						liste_clients=[trajet.clients[k] for k in range(j-1, i-1, -1)] + trajet.clients[j:], 
+						horaires=trajet.horaires[:i]):
 				mini = dist
 				ind = (i, j)
 	
@@ -252,18 +266,17 @@ def cross_exchange(flotte :Flotte) -> tuple[float, tuple[tuple[int, int], tuple[
 	trajets = flotte.trajets
 	for i, t1 in enumerate(trajets) :
 		nb1 = t1.nb_clients
-		clients1 = t1.clients
 		for j in range(1, nb1) :
 			marchandise1 = t1.info_marchandise_tab_clients(j)
 			for x, t2 in enumerate(trajets[i+1:]) :
 				nb2 = t2.nb_clients
-				clients2 = t2.clients
 				for y in range(1, nb2) :
 					if j == nb1 - 1 and y == nb2 - 1: continue
 					marchandise2 = t2.info_marchandise_tab_clients(y)
 					if t1.marchandise - marchandise1 + marchandise2 <= flotte.capacite and t2.marchandise - marchandise2 + marchandise1 <= flotte.capacite :
 						tmp = dist_echanger_tab_clients((t1, j), (t2, y))
-						if tmp < mini :
+						if tmp < mini and t2.maj_horaires(modifie=False, liste_clients=t1.clients[:j+1]+t2.clients[y+1:], horaires=[]) \
+									and t1.maj_horaires(modifie=False, liste_clients=t2.clients[:y+1]+t1.clients[j+1:], horaires=[]) :
 							mini = tmp
 							ind = ((i, j), (x+i+1, y))
 	
@@ -292,8 +305,8 @@ def effectuer_relocate(flotte :Flotte, new_dist :float, indice :tuple[tuple[int,
 	flotte.longueur += new_dist
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
-			cli = trajets[i].retirer_client(j)
-			trajets[x].ajouter_client(y, cli)
+			cli = trajets[i].retirer_client(j, None if i == x else False)
+			trajets[x].ajouter_client(y, cli, i==x)
 			if trajets[i].nb_clients == 0: flotte.retirer_trajet(i)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
@@ -322,10 +335,10 @@ def effectuer_exchange(flotte :Flotte, new_dist :float, indice :tuple[tuple[int,
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
 			cli1 = trajets[i].clients[j]
-			cli2 = trajets[x].retirer_client(y)
-			trajets[x].ajouter_client(y, cli1)
-			trajets[i].retirer_client(j)
-			trajets[i].ajouter_client(j, cli2)
+			cli2 = trajets[x].retirer_client(y, None)
+			trajets[x].ajouter_client(y, cli1, None if i == x else True)
+			trajets[i].retirer_client(j, None)
+			trajets[i].ajouter_client(j, cli2, True)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
 
@@ -352,10 +365,10 @@ def effectuer_cross_exchange(flotte :Flotte, new_dist :float, indice :tuple[tupl
 	flotte.longueur += new_dist
 	match indice :
 		case [[int(i), int(j)], [int(x), int(y)]] :
-			tab_cli1 = trajets[i].retirer_tab_client(j)
-			tab_cli2 = trajets[x].retirer_tab_client(y)
-			trajets[x].ajouter_tab_client(tab_cli1)
-			trajets[i].ajouter_tab_client(tab_cli2)
+			tab_cli1 = trajets[i].retirer_tab_client(j, None)
+			tab_cli2 = trajets[x].retirer_tab_client(y, None)
+			trajets[x].ajouter_tab_client(tab_cli1, True)
+			trajets[i].ajouter_tab_client(tab_cli2, True)
 		case _ :
 			raise AssertionError("Le paramètre indice ne respecte pas le bon format !")
 

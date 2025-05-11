@@ -77,7 +77,7 @@ class Trajet :
 
 
 
-	def ajouter_client(self, indice :int, client :Client) :
+	def ajouter_client(self, indice :int, client :Client, maj_horaire :bool|None = False) :
 		"""
 		Ajoute un client à la feuille de route, à la position 'indice'.
 
@@ -87,22 +87,24 @@ class Trajet :
 			Indice où insérer le client.
 		client : Client
 			Client à ajouter dans l'itinéraire de livraison.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 		"""
-		assert isinstance(client, Client)
+		assert isinstance(client, Client) and (maj_horaire is None or isinstance(maj_horaire, bool))
 		assert isinstance(indice, int) and 0 <= indice
 
 		self.longueur += self.dist_ajouter_client(indice, client)
 		self.marchandise += client.demande
-		if indice >= self.nb_clients: self.maj_horaires([client])
-		else: 
-			self.horaires = self.horaires[:indice]
-			self.maj_horaires([client] + self.clients[indice:])
 		self.clients.insert(indice, client)
 		self.nb_clients += 1
+		if maj_horaire is not None:
+			if maj_horaire: indice = 0
+			assert self.maj_horaires(indice)
 
 
 
-	def retirer_client(self, indice :int) -> Client :
+	def retirer_client(self, indice :int, maj_horaire :bool|None = False) -> Client :
 		"""
 		Retire un client de l'itinéraire.
 
@@ -110,21 +112,24 @@ class Trajet :
 		----------
 		indice : int
 			Indice du client dans la liste non vide 'clients'.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 
 		Renvoie
 		-------
 		Le client se trouvant à l'indice passé en paramètre.
 		"""
-		assert isinstance(indice, int) and 0 <= indice < self.nb_clients
+		assert isinstance(indice, int) and 0 <= indice < self.nb_clients and (maj_horaire is None or isinstance(maj_horaire, bool))
 
 		self.longueur += self.dist_retirer_client(indice)
 		cli = self.clients.pop(indice)
 		self.nb_clients -= 1
 		self.marchandise -= cli.demande
-		if indice == self.nb_clients: self.horaires.pop(indice)
-		else:
-			self.horaires = self.horaires[:indice]
-			self.maj_horaires(self.clients[indice:])
+		if maj_horaire is not None:
+			if maj_horaire: indice = 0
+			if indice == self.nb_clients: assert isinstance(self.horaires.pop(indice), int)
+			else: assert self.maj_horaires(indice)
 		return cli
 
 
@@ -251,6 +256,8 @@ class Trajet :
 			cli_tmp = clients[ind_debut+i]
 			clients[ind_debut+i] = clients[ind_fin-i]
 			clients[ind_fin-i] = cli_tmp
+
+		assert self.maj_horaires(ind_debut)
 			
 
 
@@ -279,7 +286,7 @@ class Trajet :
 
 
 
-	def ajouter_tab_client(self, tab_clients :list[Client]) :
+	def ajouter_tab_client(self, tab_clients :list[Client], maj_horaire :bool|None = False) :
 		"""
 		Ajoute une liste de clients au début de la feuille de route.
 
@@ -287,16 +294,20 @@ class Trajet :
 		----------
 		tab_clients : list[Client]
 			Liste ordonnée des clients à ajouter dans l'itinéraire de livraison.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 		"""
-		assert isinstance(tab_clients, list)
+		assert isinstance(tab_clients, list) and (maj_horaire is None or isinstance(maj_horaire, bool))
 
-		for client in tab_clients[::-1] :
+		for client in tab_clients[:0:-1] :
 			assert isinstance(client, Client)
-			self.ajouter_client(0, client)
+			self.ajouter_client(0, client, None)
+		self.ajouter_client(0, tab_clients[0], maj_horaire)
 
 
 
-	def retirer_tab_client(self, indice :int) -> list[Client] :
+	def retirer_tab_client(self, indice :int, maj_horaire :bool|None = False) -> list[Client] :
 		"""
 		Retire une liste de clients consécutifs de l'itinéraire.
 
@@ -304,37 +315,78 @@ class Trajet :
 		----------
 		indice : int
 			Indice du dernier client.
+		maj_horaire : bool|None
+			True pour mettre à jour toutes les horaires, False sinon.
+			None pour ne pas mettre à jour les horaires
 
 		Renvoie
 		-------
 		La liste ordonnée des clients retirés du trajet.
 		"""
-		assert isinstance(indice, int)
+		assert isinstance(indice, int) and (maj_horaire is None or isinstance(maj_horaire, bool))
 		assert 1 <= indice < self.nb_clients
 
 		liste_clients = []
-		for _ in range(indice + 1) :
-			liste_clients.append(self.retirer_client(0))
+		for _ in range(indice) :
+			liste_clients.append(self.retirer_client(0, None))
+		liste_clients.append(self.retirer_client(0, maj_horaire))
 		
 		return liste_clients
 
 
 
-	def maj_horaires(self, clients :list[Client]) :
+	def maj_horaires(self, indice :int = 0, client :Client|None = None, modifie :bool = True, liste_clients :list[Client]|None = None, horaires :list[int]|None = None) -> bool :
 		"""
-		Ajoute les horaires de livraison des clients de 'clients' aux horaires déjà existantes.
+		Ajoute 'client' dans la liste des horaires de livraison, ou en retire un à la position 'indice'.
 
 		Paramètres
 		----------
-		clients : list[Client]
-			Liste des clients à ajouter.
-		"""
-		assert isinstance(clients, list)
+		indice : int
+			Indice où ajouter le client.
+		client : Client|None
+			Pour tester l'ajout d'un client (force modifie à False).
+		modifie : bool
+			True pour effectuer les modifications, False sinon.
+		liste_clients : list[Client]|None
+			Liste des clients en ajouter si connue, None sinon.
+		horaires : list[int]|None
+			Liste des horaires si connue, None sinon.
 
-		for client in clients:
+		Renvoie
+		-------
+		True si la modification peut être effectuée, False sinon.
+		"""
+		assert isinstance(indice, int) and 0 <= indice and isinstance(modifie, bool)
+		if client is not None:
 			assert isinstance(client, Client)
-			if len(self.horaires) == 0 or self.horaires[-1] <= client.intervalle_livraison[0]: self.horaires.append(client.intervalle_livraison[0] + client.temps_livraison)
-			else: self.horaires.append(self.horaires[-1] + client.temps_livraison)
+			modifie = False
+
+		clients = [] if client is None else [client]
+		
+		new_horaires = self.horaires[:indice]
+		clients += self.clients[indice:]
+		
+		if liste_clients is not None : 
+			assert isinstance(liste_clients, list)
+			clients = []
+			for cli in liste_clients:
+				assert isinstance(cli, Client)
+				clients.append(cli)
+		if horaires is not None : 
+			assert isinstance(horaires, list)
+			new_horaires = []
+			for horaire in horaires:
+				assert isinstance(horaire, int)
+				new_horaires.append(horaire)
+
+		for cli in clients:
+			precedent = new_horaires[-1] if len(new_horaires) > 0 else self.depot.intervalle_livraison[0]
+			if precedent > cli.intervalle_livraison[1]: return False
+			new_horaires.append(max(precedent, cli.intervalle_livraison[0]) + cli.temps_livraison)
+		
+		if modifie: self.horaires = new_horaires.copy()
+		
+		return new_horaires[-1] <= self.depot.intervalle_livraison[1]
 
 
 
@@ -394,20 +446,20 @@ class Flotte :
 		return f"Flotte(longueur : {long:.2f}km, contient {nb} camions)"
 
 
-	def afficher(self, capacite :bool = False) :
+	def afficher(self, affichage :bool = False) :
 		"""
 		Affiche la flotte (la longueur et le nombre de camions), et tous les trajets qui la compose.
-		Affiche, pour les trajets, la capacité si capacite = True, 
+		Affiche, pour les trajets, les horaires de livraison si affichage = True,  
 		la liste ordonnée des clients du trajet sinon.
 
 		Paramètres
 		----------
-		capacite : bool
+		affichage : bool
 			Booléen permettant de préciser l'affichage.
 		"""
 		print(self)
 		for t in self.trajets:
-			t.afficher(capacite)
+			t.afficher(affichage)
 		print()
 
 
