@@ -43,18 +43,35 @@ def distance(client1 :Client, client2 :Client) -> float :
 
 class Trajet :
 
-	__slots__ = "longueur", "nb_clients", "clients", "depot", "marchandise", "horaires"
+	__slots__ = "longueur", "nb_clients", "clients", "depot", "marchandise", "horaires", "contraintes"
 
-	def __init__(self, depot :Client = Client()) :
+	def __init__(self, depot :Client = Client(), contrainte_capacite :bool=False, contrainte_temps :bool=False) :
+		"""
+		Constructeur d'un trajet.
+
+		Paramètres
+		----------
+		depot : Client
+			Dépôt de marchandises associé au trajet.
+		contrainte_capacite : bool
+			True pour prendre en compte la contrainte de capacité, False sinon.
+		contrainte_temps : bool
+			True pour prendre en compte la contrainte de temps, False sinon.
+		"""
+		assert isinstance(depot, Client) and isinstance(contrainte_capacite, bool) and isinstance(contrainte_temps, bool)
 		self.longueur = 0.0
 		self.nb_clients = 0
 		self.clients = []
 		self.depot = depot
 		self.marchandise = 0
 		self.horaires = []
+		self.contraintes = {"capacite":contrainte_capacite, "temps":contrainte_temps}
 
 
 	def __repr__(self) -> str :
+		"""
+		Affiche la longueur et le nombre de clients dans le trajet.
+		"""
 		long = self.longueur
 		nb = self.nb_clients
 		return f"Trajet(longueur : {long:.2f}km, contient {nb} clients)"
@@ -95,10 +112,10 @@ class Trajet :
 		assert isinstance(indice, int) and 0 <= indice
 
 		self.longueur += self.dist_ajouter_client(indice, client)
-		self.marchandise += client.demande
+		if self.contraintes["capacite"] : self.marchandise += client.demande
 		self.clients.insert(indice, client)
 		self.nb_clients += 1
-		if maj_horaire is not None:
+		if self.contraintes["temps"] and maj_horaire is not None:
 			if maj_horaire: indice = 0
 			assert self.maj_horaires(indice)
 
@@ -125,8 +142,8 @@ class Trajet :
 		self.longueur += self.dist_retirer_client(indice)
 		cli = self.clients.pop(indice)
 		self.nb_clients -= 1
-		self.marchandise -= cli.demande
-		if maj_horaire is not None:
+		if self.contraintes["capacite"] : self.marchandise -= cli.demande
+		if self.contraintes["temps"] and maj_horaire is not None:
 			if maj_horaire: indice = 0
 			if indice == self.nb_clients: assert isinstance(self.horaires.pop(indice), int)
 			else: assert self.maj_horaires(indice)
@@ -257,7 +274,7 @@ class Trajet :
 			clients[ind_debut+i] = clients[ind_fin-i]
 			clients[ind_fin-i] = cli_tmp
 
-		assert self.maj_horaires(ind_debut)
+		assert not self.contraintes["temps"] or self.maj_horaires(ind_debut)
 			
 
 
@@ -356,6 +373,7 @@ class Trajet :
 		-------
 		True si la modification peut être effectuée, False sinon.
 		"""
+		if not self.contraintes["temps"] : return True
 		assert isinstance(indice, int) and 0 <= indice and isinstance(modifie, bool)
 		if client is not None:
 			assert isinstance(client, Client)
@@ -434,6 +452,15 @@ class Flotte :
 	__slots__ = "capacite", "longueur", "nb_trajets", "trajets"
 
 	def __init__(self, capacite :int = 0) :
+		"""
+		Constructeur d'une flotte.
+
+		Paramètres
+		----------
+		capacite : int
+			Quantité maximale de marchandise pour chaque trajet.
+		"""
+		assert isinstance(capacite, int)
 		self.capacite = capacite
 		self.longueur = 0.0
 		self.nb_trajets = 0
@@ -441,6 +468,9 @@ class Flotte :
 
 
 	def __repr__(self) -> str :
+		"""
+		Affiche la longueur et le nombre de camions de la flotte.
+		"""
 		long = self.longueur
 		nb = self.nb_trajets
 		return f"Flotte(longueur : {long:.2f}km, contient {nb} camions)"

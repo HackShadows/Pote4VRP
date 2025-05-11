@@ -25,7 +25,7 @@ VISUEL  = 0b_100
 
 
 
-def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client, clients :list[Client], remplissage :float=0.5) -> Flotte :
+def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client, clients :list[Client], capacite :bool=False, remplissage :float=0.5, temps :bool=False) -> Flotte :
 	"""
 	Génère une solution initiale.
 
@@ -37,35 +37,40 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 		Client contenant toutes les informations du dépôt.
 	clients : list[Client]
 		Liste des clients à mettre dans la solution initiale.
+	capacite : bool
+		True pour prendre en compte la contrainte de capacité, False sinon.
 	remplissage : float
 		Pourcentage de remplissage des camions (compris entre 0.01 et 1.00)
+	temps : bool
+		True pour prendre en compte la contrainte de temps, False sinon.
 	
 	Renvoie
 	-------
 	Une flotte initiale.
 	"""
-	assert isinstance(remplissage, float) and 0 < remplissage < 1
+	assert isinstance(remplissage, float) and 0 < remplissage < 1 and isinstance(capacite, bool) and isinstance(temps, bool) and isinstance(dépôt, Client) and isinstance(clients, list)
 	
-	flotte = Flotte(métadonnées["MAX_QUANTITY"])
-	trajets = [Trajet(dépôt)]
+	flotte = Flotte(métadonnées["MAX_QUANTITY"], capacite, temps)
+	trajets = [Trajet(dépôt, capacite, temps)]
 	for cli in clients :
+		assert isinstance(cli, Client)
 		continuer = True
 		a_ajouter = []
 		for j in range(len(trajets)):
 			if not continuer: break
 			if trajets[j].nb_clients > 0:
-				if trajets[j].marchandise > flotte.capacite * remplissage or trajets[j].horaires[-1] + cli.temps_livraison >= dépôt.intervalle_livraison[1]:
+				if capacite and trajets[j].marchandise > flotte.capacite * remplissage or temps and trajets[j].horaires[-1] + cli.temps_livraison >= dépôt.intervalle_livraison[1]:
 					a_ajouter.append(j)
 					continue
 			for i in range(trajets[j].nb_clients+1):
-				if trajets[j].maj_horaires(i, cli, False):
+				if temps and trajets[j].maj_horaires(i, cli, False):
 					trajets[j].ajouter_client(i, cli)
 					continuer = False
 					break
 		for i in a_ajouter[::-1]: flotte.ajouter_trajet(trajets.pop(i))
 		
 		if continuer:
-			trajets.append(Trajet(dépôt))
+			trajets.append(Trajet(dépôt, capacite, temps))
 			trajets[-1].ajouter_client(0, cli)
 
 	
@@ -75,7 +80,7 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 
 
 
-def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sortie :Optional[str|Path|IO[str]] = None) :
+def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, capacite :bool=False, remplissage :float=0.5, temps :bool=False, sortie :Optional[str|Path|IO[str]] = None) :
 	"""
 	Calcule et affiche un itinéraire de livraison proche de l'optimal.
 	
@@ -88,6 +93,12 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 		Entier permettant de spécifier l'affichage désiré.
 		Affichage console (0), Affichage graphique (1), 
 		Affichage console détaillé (2), Affichage graphique détaillé (3)
+	capacite : bool
+		True pour prendre en compte la contrainte de capacité, False sinon.
+	remplissage : float
+		Pourcentage de remplissage des camions (compris entre 0.01 et 1.00)
+	temps : bool
+		True pour prendre en compte la contrainte de temps, False sinon.
 	sortie : path_like | stream_like
 		Chemin du fichier vrp où écrire les informations de la solution.
 		Si non-spécifié, le chemin est choisi automatiquement (data/out/result_{datetime.now()}.vrp)
@@ -98,6 +109,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 		Le fichier d'entrée contient plus d'un dépôt.
 	Toutes les erreurs de filesIO.importer_vrp
 	"""
+	assert isinstance(capacite, bool) and isinstance(temps, bool) and isinstance(remplissage, float)
 	chemin_fichier = None
 
 	if isinstance(fichier, (str, Path)) :
@@ -133,7 +145,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 
 
 
-	flotte = générer_solution_aléatoire(métadonnées, dépôt, clients)
+	flotte = générer_solution_aléatoire(métadonnées, dépôt, clients, capacite, remplissage, temps)
 	positions = [cli.pos for cli in clients]
 
 	détails = bool(mode & DETAILS)
@@ -153,7 +165,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, sorti
 def fonction_traitement(nom_fichier :str, fichier_données :bytes) -> Optional[str] :
 	try :
 		fichier_données = StringIO(fichier_données.decode())
-		approximation_solution(fichier_données, CONSOLE|VISUEL, "data/out/" + nom_fichier + ".vrp")
+		approximation_solution(fichier_données, CONSOLE|VISUEL, True, 0.5, True, "data/out/" + nom_fichier + ".vrp")
 	except Exception as e :
 		return repr(e)
 	else : return None
@@ -169,8 +181,8 @@ def main_dev() :
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
-	num = fichiers[9]
-	approximation_solution(f"data/in/data{num}.vrp", CONSOLE)
+	num = fichiers[0]
+	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, True, 0.5, True)
 
 
 
@@ -181,5 +193,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if False : main_dev()
+	if True : main_dev()
 	else : main()
