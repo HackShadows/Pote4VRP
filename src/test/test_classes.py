@@ -11,7 +11,7 @@ class TestClassClient(unittest.TestCase) :
 
 	def setUp(self) :
 		#Setup
-		self.client = Client("id0", (4, 1000), (98, 123456), 10, 330)
+		self.client = Client("id0", (4, 1000), (98, 123456), 330, 10)
 
 
 
@@ -20,8 +20,8 @@ class TestClassClient(unittest.TestCase) :
 		self.assertEqual     (self.client.id                  , "id0"       )
 		self.assertTupleEqual(self.client.pos                 , (4 ,   1000))
 		self.assertTupleEqual(self.client.intervalle_livraison, (98, 123456))
-		self.assertEqual     (self.client.temps_livraison     , 10          )
 		self.assertEqual     (self.client.demande             , 330         )
+		self.assertEqual     (self.client.temps_livraison     , 10          )
 
 
 
@@ -123,7 +123,7 @@ class TestTrajet(unittest.TestCase) :
 	def test_ajouter_client(self) :
 		# Setup
 		client1 = NonCallableMock(Client)
-		client1.pos = (1, 1); client1.demande = 10
+		client1.pos = (1, 1); client1.demande = 10; client1.intervalle_livraison = (45, 58); client1.temps_livraison = 26
 		# Test
 		self.trajet.ajouter_client(0, client1)
 
@@ -134,7 +134,7 @@ class TestTrajet(unittest.TestCase) :
 
 		# Setup
 		client2 = NonCallableMock(Client)
-		client2.pos = (2, 1); client2.demande = 5
+		client2.pos = (2, 1); client2.demande = 5; client2.intervalle_livraison = (24, 461); client2.temps_livraison = 1
 		# Test
 		self.trajet.ajouter_client(1, client2)
 
@@ -152,6 +152,10 @@ class TestTrajet(unittest.TestCase) :
 		client2 = NonCallableMock(Client)
 		client1.pos     = (1, 2); client2.pos     = (3, 1)
 		client1.demande = 10    ; client2.demande = 5
+		client1.intervalle_livraison = (8, 9)
+		client2.intervalle_livraison = (10, 100)
+		client1.temps_livraison = 21; client2.temps_livraison = 22
+
 		self.trajet.ajouter_client(0, client1)
 		self.trajet.ajouter_client(1, client2)
 
