@@ -50,7 +50,7 @@ def générer_solution_aléatoire(métadonnées :dict[str, Any], dépôt :Client
 	"""
 	assert isinstance(remplissage, float) and 0 < remplissage < 1 and isinstance(capacite, bool) and isinstance(temps, bool) and isinstance(dépôt, Client) and isinstance(clients, list)
 	
-	flotte = Flotte(métadonnées["MAX_QUANTITY"], capacite, temps)
+	flotte = Flotte(métadonnées["MAX_QUANTITY"])
 	trajets = [Trajet(dépôt, capacite, temps)]
 	for cli in clients :
 		assert isinstance(cli, Client)
