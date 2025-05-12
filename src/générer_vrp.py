@@ -91,13 +91,13 @@ def générer_vrp(fichier              :str|Path|IO[str]
 
 	dépôts = [Client(
 		f"d{i}",
-		tuple(randrange(-taille_environnement[i], taille_environnement[i]) for i in range(2)),
+		tuple(randrange(taille_environnement[i]) for i in range(2)),
 		(0, temps_fin)
 	) for i in range(nb_dépôts)]
 
 	clients = [Client(
 		f"c{i}",
-		tuple(randrange(-taille_environnement[i], taille_environnement[i]) for i in range(2)),
+		tuple(randrange(taille_environnement[i]) for i in range(2)),
 		tuple(sorted(randrange(1, temps_fin) for _ in range(2))),
 		randrange(1, capacité // 2 + 1),
 		randrange(1, 20)
