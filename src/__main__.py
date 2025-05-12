@@ -185,9 +185,9 @@ def main_dev() :
 	
 	contrainte_capacite = True
 	remplissage_initial = 0.5
-	contrainte_temps = True
+	contrainte_temps = False
 	
-	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
+	approximation_solution(f"data/in/test.vrp", GRAPHIQUE, contrainte_capacite, remplissage_initial, contrainte_temps)
 
 
 
@@ -198,5 +198,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if False : main_dev()
+	if True : main_dev()
 	else : main()

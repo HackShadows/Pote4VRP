@@ -1,4 +1,4 @@
-from ..classes import Client
+from classes import Client
 
 
 from typing import Any, IO, Optional
@@ -132,3 +132,6 @@ def générer_vrp(fichier              :str|Path|IO[str]
 		ID = client.id; X, Y = client.pos; DÉBUT_H, FIN_H = client.intervalle_livraison; QUANT = client.demande; DURÉE = client.temps_livraison
 		fichier.write(f"{ID}\t{X}\t{Y}\t{DÉBUT_H}\t{FIN_H}\t{QUANT}\t{DURÉE}\n")
 	fichier.write("\n")
+
+
+générer_vrp("data/in/test.vrp", 1, 50, 500)
