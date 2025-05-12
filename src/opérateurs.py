@@ -417,10 +417,15 @@ def effectuer_changements(flotte :Flotte) -> bool :
 	"""
 	assert isinstance(flotte, Flotte)
 	
-	exchange = inter_exchange(flotte)
 	relocate = inter_relocate(flotte)
+	exchange = inter_exchange(flotte)
 	cross_exch = cross_exchange(flotte)
 	deux_opt = deux_opt_flotte(flotte)
+
+	# relocate = (None, None)
+	# exchange = (None, None)
+	# cross_exch = (None, None)
+	# deux_opt = (None, None)
 	
 	match [relocate[1], exchange[1], cross_exch[1], deux_opt[1]] :
 		case [None, None, None, None] :

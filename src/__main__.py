@@ -183,11 +183,11 @@ def main_dev() :
 
 	num = fichiers[0]
 	
-	contrainte_capacite = True
+	contrainte_capacite = False
 	remplissage_initial = 0.5
 	contrainte_temps = False
 	
-	approximation_solution(f"data/in/data{num}.vrp", GRAPHIQUE, contrainte_capacite, remplissage_initial, contrainte_temps)
+	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
 
 
 
