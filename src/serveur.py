@@ -514,7 +514,7 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 
 		elif path == "/resultats" and client.état is not Client.State.MAIN_PAGE :
-			self.serve_file(f"data/out/{id(client)}_{client.tâches[0].id}.zip")
+			self.serve_file(Path(f"data/out/{id(client)}_{client.tâches[0].id}.zip"))
 
 		elif path.startswith("/resultats") and client.état is not Client.State.MAIN_PAGE and path.count("/") > 1 :
 			rel_path = Path(*rel_path.parts[1:])
