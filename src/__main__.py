@@ -164,7 +164,7 @@ def approximation_solution(fichier :str|Path|IO[str], mode :int = CONSOLE, capac
 
 def fonction_traitement(nom_fichier :str, fichier_données :bytes) -> Optional[str] :
 	try :
-		fichier_données = StringIO(fichier_données.decode())
+		fichier_données = StringIO(fichier_données.decode().replace('\r\n', '\n').replace('\r', '\n'))
 		approximation_solution(fichier_données, CONSOLE|VISUEL, True, 0.5, True, "data/out/" + nom_fichier + ".vrp")
 	except Exception as e :
 		return repr(e)
@@ -198,5 +198,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if True : main_dev()
+	if False : main_dev()
 	else : main()
