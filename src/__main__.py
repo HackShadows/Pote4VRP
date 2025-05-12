@@ -187,7 +187,7 @@ def main_dev() :
 	remplissage_initial = 0.5
 	contrainte_temps = False
 	
-	approximation_solution(f"data/in/test.vrp", GRAPHIQUE, contrainte_capacite, remplissage_initial, contrainte_temps)
+	approximation_solution(f"data/in/data{num}.vrp", GRAPHIQUE, contrainte_capacite, remplissage_initial, contrainte_temps)
 
 
 

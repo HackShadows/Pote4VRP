@@ -36,7 +36,7 @@ def intra_relocate(trajet :Trajet) -> tuple[float, tuple[int, int]] :
 						modifie=False, 
 						liste_clients=trajet.clients[i+1:j] + [cli] + trajet.clients[j:] if j > i else [cli] + trajet.clients[j:i] + trajet.clients[i+1:], 
 						horaires=trajet.horaires[:min(i, j)])):
-				mini = dist_tmp
+				mini = dist_tmp2
 				ind = (i, j if j < i else j-1)
 	
 	return (mini, ind)
