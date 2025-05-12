@@ -436,7 +436,7 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 		if self.request_version != "HTTP/1.1" : return error(505, "requested version is not HTTP/1.1")
 		self.protocol_version = "HTTP/1.1"
 
-		if self.headers.get("Connection"           ) != "Upgrade"  : return error(400, f"\"Connection\" = {self.headers.get('Connection'           )}")
+		if "Upgrade" not in self.headers.get("Connection"       )  : return error(400, f"\"Connection\" = {self.headers.get('Connection'           )}")
 		if self.headers.get("Upgrade"              ) != "websocket": return error(400, f"\"Connection\" = {self.headers.get('Upgrade'              )}")
 		if self.headers.get("Sec-WebSocket-Version") != "13"       : return error(400, f"\"Connection\" = {self.headers.get('Sec-WebSocket-Version')}")
 
