@@ -99,7 +99,7 @@ def générer_vrp(fichier              :str|Path|IO[str]
 		f"c{i}",
 		tuple(randrange(taille_environnement[i]) for i in range(2)),
 		tuple(sorted(randrange(1, temps_fin) for _ in range(2))),
-		randrange(1, capacité // 2 + 1),
+		randrange(1, capacité // 9 + 1),
 		randrange(1, 20)
 	) for i in range(nb_clients)]
 
