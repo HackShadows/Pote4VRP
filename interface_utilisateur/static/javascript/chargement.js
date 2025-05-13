@@ -29,7 +29,7 @@ function miseAJourTacheSucces(id)
 	let link = document.createElement("a");
 	link.setAttribute("href", `resultat/${id}.vrp`);
 	link.toggleAttribute("download");
-	link.textContent = "Télecharger";
+	link.textContent = "Télécharger";
 	telecharger.appendChild(link);
 }
 
