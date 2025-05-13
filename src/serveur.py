@@ -400,14 +400,37 @@ class Client :
 	__slots__ = "état", "tâches", "queue"
 
 	def __init__(self, état :State) :
-		self.état = état
-		self.tâches = list()
-		self.queue = Queue()
+		self.état   = état
+		self.tâches = None
+		self.queue  = None
 	
-	def lancer_traitement(self, tâches :list[Tâche]) :
-		self.tâches.clear()
-		self.tâches.extend(tâches)
+
+	def id_groupe_tâches(self) -> str|None :
+		if self.tâches is None :
+			return None
+		return f"{id(self)}_{self.tâches[0].id}"
+
+	def id_tâche(self, index :int) -> str|None :
+		if self.tâches is None or not(0 <= index < len(self.tâches)) :
+			return None
+		return f"{id(self)}_{self.tâches[index].id}_{self.tâches[index].nom}"
+
+
+	def préparer_traitement(self, tâches :list[Tâche]) :
+		self.tâches = tâches
+		self.queue = Queue()
 		self.état = self.State.PROCESSING
+	
+	def notifier(self, tâche_id :int) :
+		self.queue.put(tâche_id)
+
+	def cloturer_traitement(self) :
+		self.état = self.State.FINISHED
+	
+	def réinitialiser(self, état :State) :
+		self.état   = état
+		self.tâches = None
+		self.queue  = None
 
 
 
@@ -426,22 +449,32 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 
 
-	def opening_handshake(self) :
+	def opening_handshake(self) -> bool :
 
 		def error(code :int, reason :str) :
 			self.send_response(code)
 			self.log_error(f"Could not open handshake : {reason}")
 
 
-		if self.request_version != "HTTP/1.1" : return error(505, "requested version is not HTTP/1.1")
+		if self.request_version != "HTTP/1.1" :
+			error(505, "requested version is not HTTP/1.1")
+			return False
 		self.protocol_version = "HTTP/1.1"
 
-		if "Upgrade" not in self.headers.get("Connection"       )  : return error(400, f"\"Connection\" = {self.headers.get('Connection'           )}")
-		if self.headers.get("Upgrade"              ) != "websocket": return error(400, f"\"Connection\" = {self.headers.get('Upgrade'              )}")
-		if self.headers.get("Sec-WebSocket-Version") != "13"       : return error(400, f"\"Connection\" = {self.headers.get('Sec-WebSocket-Version')}")
+		if "Upgrade" not in self.headers.get("Connection")  :
+			error(400, f"\"Connection\" = \"{self.headers.get('Connection')}\"")
+			return False
+		if self.headers.get("Upgrade") != "websocket":
+			error(400, f"\"Connection\" = \"{self.headers.get('Upgrade')}\"")
+			return False
+		if self.headers.get("Sec-WebSocket-Version") != "13" :
+			error(400, f"\"Connection\" = \"{self.headers.get('Sec-WebSocket-Version')}\"")
+			return False
 
 		key = self.headers.get("Sec-WebSocket-Key")
-		if key is None : return error(400, "Sec-WebSocket-Key is none")
+		if key is None :
+			error(400, "Sec-WebSocket-Key is none")
+			return False
 
 
 		accept = base64.b64encode(hashlib.sha1((key + GUID).encode()).digest()).decode()
@@ -452,15 +485,17 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 		self.end_headers()
 
 		self.websocket = WebSocket(self.rfile, self.wfile)
+		return True
 
 
 
-	def listen(self, client) :
-		tâche = client.queue.get()
-		while tâche is not None :
-			self.websocket.send(f"{id(client)}_{tâche.id}_{tâche.nom}:{int(tâche.état == Tâche.Etat.SUCCES)}:{tâche.message_erreur}")
-			tâche = client.queue.get()
-		client.état = Client.State.FINISHED
+	def listen(self) :
+		tâche_index = self.client.queue.get()
+		while tâche_index is not None :
+			tâche = self.client.tâches[tâche_index]
+			self.websocket.send(f"{self.client.id_tâche(tâche_index)}:{int(tâche.état == Tâche.Etat.SUCCES)}:{tâche.message_erreur}")
+			tâche_index = self.client.queue.get()
+		self.client.cloturer_traitement()
 		self.websocket.close()
 
 
@@ -468,128 +503,169 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 
 	def do_GET(self) :
-		_, _, path, _, _, _ = urlparse(self.path) # <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
-		rel_path = Path(path.lstrip("/"))
+		_, _, path, _, query, _ = urlparse(self.path) # <scheme>://<netloc>/<path>;<params>?<query>#<fragment>
 
 
-		client = self.server.clients.get(None)
-		if client is None :
-			client = self.server.clients[None] = Client(Client.State.MAIN_PAGE)
+		self.client = self.server.clients.get(None)
+		if self.client is None :
+			self.client = self.server.clients[None] = Client(Client.State.MAIN_PAGE)
 
 
-		if path == "/" :
-			match client.état :
-				case Client.State.MAIN_PAGE :
-					template = self.server.environnement.get_template("accueil.html")
-					self.serve_content(".html", template.render(CONFIG = {"page" : "accueil"}).encode())
+		match self.client.état :
+			case Client.State.MAIN_PAGE :
+				if path == "/" and self.serve_main_page()  : return
+			case Client.State.PROCESSING :
+				if path     ==     "/"          and self.serve_processing()   : return
+				if path.startswith("/resultat") and self.serve_résultat(path) : return
+				if path     ==     "/ws"        and self.handle_websocket()   : return
+			case Client.State.FINISHED :
+				if path  ==  "/" and not query                   and self.serve_résultats()    : return
+				if path  ==  "/" and query == "redirect=accueil" and self.redirect_accueil()   : return
+				if path.startswith("/resultat")                 and self.serve_résultat(path) : return
 
 
-				case Client.State.PROCESSING :
-					template = self.server.environnement.get_template("chargement.html")
-					config = {
-						"page" : "chargement",
-						"taches" : [{
-							"id" : f"{id(client)}_{tâche.id}_{tâche.nom}",
-							"nom" : tâche.nom,
-							"état" : tâche.état.name,
-							"message_erreur" : tâche.message_erreur,
-						} for tâche in client.tâches]
-					}
-					self.serve_content(".html", template.render(CONFIG = config).encode())
+		if path.endswith(".js" ) and self.serve_javascript(path) : return
+		if path.endswith(".css") and self.serve_css(path)        : return
 
-
-				case Client.State.FINISHED :
-					template = self.server.environnement.get_template("resultats.html")
-					config = {
-						"page" : "resultats",
-						"taches" : [{
-							"id" : f"{id(client)}_{tâche.id}_{tâche.nom}",
-							"nom" : tâche.nom,
-							"état" : tâche.état.name,
-							"message_erreur" : tâche.message_erreur,
-						} for tâche in client.tâches]
-					}
-					self.serve_content(".html", template.render(CONFIG = config).encode())
+		self.serve_unknown_page(path)
 
 
 
-		elif path == "/resultats" and client.état is not Client.State.MAIN_PAGE :
-			self.serve_file(Path(f"data/out/{id(client)}_{client.tâches[0].id}.zip"))
+	def serve_main_page(self) -> bool :
+		template = self.server.environnement.get_template("accueil.html")
+		self.serve_content(".html", template.render(CONFIG = {"page" : "accueil"}).encode())
+		return True
 
-		elif path.startswith("/resultats") and client.état is not Client.State.MAIN_PAGE and path.count("/") > 1 :
-			rel_path = Path(*rel_path.parts[1:])
+	def redirect_accueil(self) -> bool :
+		for file in os.listdir("data/out") :
+			if os.path.isfile(f"data/out/{file}") :
+				os.unlink(f"data/out/{file}")
+		self.client.réinitialiser(Client.State.MAIN_PAGE)
+		return self.serve_main_page()
+	
 
-			if path.endswith(('.svg', '.vrp')) :
-				base_path = Path("data/out")
-				if self.is_path_safe(base_path, rel_path) :
-					self.serve_file(base_path / rel_path)
-				else : self.send_reponse(404)
+	def serve_processing(self) -> bool :
+		template = self.server.environnement.get_template("chargement.html")
+		config = {
+			"page" : "chargement",
+			"taches" : [{
+				"id" : self.client.id_tâche(i),
+				"nom" : tâche.nom,
+				"état" : tâche.état.name,
+				"message_erreur" : tâche.message_erreur,
+			} for i, tâche in enumerate(self.client.tâches)]
+		}
+		self.serve_content(".html", template.render(CONFIG = config).encode())
+		return True
 
-			else : self.serve_unknown_page(path)
+
+	def serve_résultats(self) -> bool :
+		template = self.server.environnement.get_template("resultats.html")
+		config = {
+			"page" : "resultats",
+			"taches" : [{
+				"id" : self.client.id_tâche(i),
+				"nom" : tâche.nom,
+				"état" : tâche.état.name,
+				"message_erreur" : tâche.message_erreur,
+			} for i, tâche in enumerate(self.client.tâches)]
+		}
+		self.serve_content(".html", template.render(CONFIG = config).encode())
+		return True
 
 
 
-		elif path == "/ws" and client.état is Client.State.PROCESSING :
-			self.opening_handshake()
-			self.listen(client)
+	def serve_résultat(self, path :str) -> bool :
+		if path.count("/") == 1 :
+			if path != "/resultats" :
+				return False
+			self.serve_file(Path(f"data/out/{self.client.id_groupe_tâches()}.zip"))
 
+		else :
+			_, head, rel_path = path.split('/', 2)
+			if head != "resultat" or not path.endswith(('.svg', '.vrp')) :
+				return False
 
-		elif path.endswith('.js') :
-			base_path = Path("interface_utilisateur/static/javascript")
+			base_path = Path("data/out")
 			if self.is_path_safe(base_path, rel_path) :
 				self.serve_file(base_path / rel_path)
-			else : self.send_response(404)
-
-		elif path.endswith('.css'): 
-			base_path = Path("interface_utilisateur/static/css")
-			if self.is_path_safe(base_path, rel_path) :
-				self.serve_file(base_path / rel_path)
-			else : self.send_response(404)
+			else :
+				self.send_reponse(404)
+		return True
 
 
-		else : self.serve_unknown_page(path)
+
+	def handle_websocket(self) -> bool :
+		if self.opening_handshake() :
+			self.listen()
+		return True
+
+
+
+	def serve_javascript(self, path :str) -> bool :
+		rel_path = path.lstrip('/')
+		base_path = Path("interface_utilisateur/static/javascript")
+		if self.is_path_safe(base_path, rel_path) :
+			self.serve_file(base_path / rel_path)
+		else : self.send_response(404)
+		return True
+
+	def serve_css(self, path :str) -> bool :
+		rel_path = path.lstrip('/')
+		base_path = Path("interface_utilisateur/static/css")
+		if self.is_path_safe(base_path, rel_path) :
+			self.serve_file(base_path / rel_path)
+		else : self.send_response(404)
+		return True
+
+
 
 
 
 	def do_POST(self) :
-		client = self.server.clients.get(None)
-		if client is None :
-			client = self.server.clients[None] = Client(Client.State.MAIN_PAGE)
+		self.client = self.server.clients.get(None)
+		if self.client is None :
+			self.client = self.server.clients[None] = Client(Client.State.MAIN_PAGE)
 
 
-		if self.path == "/" and client.état is Client.State.MAIN_PAGE :
-			form = legacy_cgi.FieldStorage(
-				fp=self.rfile,
-				headers=self.headers,
-				environ={
-					'REQUEST_METHOD': 'POST',
-					'CONTENT_TYPE': self.headers['Content-Type'],
-				}
-			)
-			fichiers = [form[key] for key in form.keys() if key.startswith("fichier_")]
-			self.dispatch_processing(client, fichiers)
+		form = legacy_cgi.FieldStorage(
+			fp=self.rfile,
+			headers=self.headers,
+			environ={
+				'REQUEST_METHOD': 'POST',
+				'CONTENT_TYPE': self.headers['Content-Type'],
+			}
+		)
 
-			self.send_response(200)
-			self.end_headers()
 
-		elif self.path == "/" and client.état is Client.State.FINISHED :
-			form = legacy_cgi.FieldStorage(
-				fp=self.rfile,
-				headers=self.headers,
-				environ={
-					'REQUEST_METHOD': 'POST',
-					'CONTENT_TYPE': self.headers['Content-Type'],
-				}
-			)
-			print(form)
-			if "accueil" in form.keys() :
-				client.état = Client.State.MAIN_PAGE
-				template = self.server.environnement.get_template("accueil.html")
-				self.serve_content(".html", template.render(CONFIG = {"page" : "accueil"}).encode())
+		match self.client.état :
+			case Client.State.MAIN_PAGE :
+				if self.path == "/" and self.handle_upload(form) : return
+			case Client.State.PROCESSING :
+				pass
+			case Client.State.FINISHED :
+				pass
 
-			else : self.serve_unknown_page(self.path)
+		self.serve_unknown_page(self.path)
+	
 
-		else : self.serve_unknown_page(self.path)
+
+	def handle_upload(self, formulaire :legacy_cgi.FieldStorage) -> bool :
+
+		fichiers = [formulaire[key] for key in formulaire.keys() if key.startswith("fichier_")]
+		if not fichiers : return False
+
+		tâches = [Tâche(fichier.filename.rsplit('.', 1)[0], fichier.file.read()) for fichier in fichiers]
+		print(f"GOT {len(fichiers)} files : ", ", ".join(file.filename for file in fichiers))
+		print("Processing data...")
+
+		self.client.préparer_traitement(tâches)
+		thread = Thread(target=self.process, args=(self.server.traitement, self.client))
+		thread.start()
+
+		self.send_response(200)
+		self.end_headers()
+		return True
 
 
 
@@ -624,33 +700,25 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 
 
-	def dispatch_processing(self, client :Client, fichiers) :
+	@staticmethod
+	def process(traitement :Callable[[str, bytes], Optional[str]], client :Client) :
+		for i, tâche in enumerate(client.tâches) :
+			erreur = traitement(client.id_tâche(i), tâche.données)
+			if erreur is None :
+				tâche.état = Tâche.Etat.SUCCES
+			else :
+				tâche.état = Tâche.Etat.ERREUR
+				tâche.message_erreur = erreur
+			client.notifier(i)
 
-		def process() :
-			for tâche in client.tâches :
-				erreur = self.server.traitement(f"{id(client)}_{tâche.id}_{tâche.nom}", tâche.données)
-				if erreur is None :
-					tâche.état = Tâche.Etat.SUCCES
-				else :
-					tâche.état = Tâche.Etat.ERREUR
-					tâche.message_erreur = erreur
-				client.queue.put(tâche)
-			client.queue.put(None)
-			
-			with ZipFile(f"data/out/{id(client)}_{client.tâches[0].id}.zip", 'w') as vrpzip :
-				for tâche in client.tâches :
-					if tâche.état is Tâche.Etat.SUCCES :
-						vrpzip.write(f"data/out/{id(client)}_{tâche.id}_{tâche.nom}.vrp")
+		with ZipFile(f"data/out/{client.id_groupe_tâches()}.zip", 'w') as vrpzip :
+			for i, tâche in enumerate(client.tâches) :
+				if tâche.état is Tâche.Etat.SUCCES :
+					vrpzip.write(f"data/out/{client.id_tâche(i)}.vrp")
 
-
-		print(f"GOT {len(fichiers)} files : ", ", ".join(file.filename for file in fichiers))
-		print("Processing data...")
+		client.notifier(None)
 
 
-		client.lancer_traitement([Tâche(fichier.filename.rsplit('.')[0], fichier.file.read()) for fichier in fichiers])
-
-		thread = Thread(target=process)
-		thread.start()
 
 
 

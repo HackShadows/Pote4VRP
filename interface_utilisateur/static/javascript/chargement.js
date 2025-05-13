@@ -18,7 +18,7 @@ function miseAJourTacheSucces(id)
 	resultat.removeChild(resultat.firstChild);
 	
 	let img = document.createElement("img");
-	img.setAttribute("src", `resultats/${id}.svg`);
+	img.setAttribute("src", `resultat/${id}.svg`);
 	img.setAttribute("alt", "résultat du traitement");
 	resultat.appendChild(img);
 
@@ -27,7 +27,7 @@ function miseAJourTacheSucces(id)
 	telecharger.removeChild(telecharger.firstChild);
 
 	let link = document.createElement("a");
-	link.setAttribute("href", `resultats/${id}.vrp`);
+	link.setAttribute("href", `resultat/${id}.vrp`);
 	link.toggleAttribute("download");
 	link.textContent = "Télecharger";
 	telecharger.appendChild(link);
@@ -60,32 +60,22 @@ function chaqueTacheFinie()
 {
 	let telecharger_tout = document.getElementById("tout-telecharger");
 
-	let lien = document.createElement("a");
-	lien.setAttribute("id", "tout-telecharger")
-	lien.setAttribute("href", "resultats");
-	lien.toggleAttribute("download");
-	lien.textContent = "Tout télécharger";
+	let lien_tel = document.createElement("a");
+	lien_tel.setAttribute("id", "tout-telecharger")
+	lien_tel.setAttribute("href", "resultats");
+	lien_tel.toggleAttribute("download");
+	lien_tel.textContent = "Tout télécharger";
 
-	telecharger_tout.parentElement.replaceChild(lien, telecharger_tout);
+	telecharger_tout.parentElement.replaceChild(lien_tel, telecharger_tout);
 
 
 	let div = document.getElementById("barre-resultat");
 
-	let form = document.createElement("form");
-	form.setAttribute("method", "POST");
-	form.setAttribute("action", "/");
+	let lien_acc = document.createElement("a");
+	lien_acc.setAttribute("href", "?redirect=accueil");
+	lien_acc.textContent = "Retour à l'Accueil";
 
-	let label = document.createElement("label");
-	label.textContent = "Retour à l'Accueil";
-
-	let input = document.createElement("input");
-	input.setAttribute("type", "submit");
-	input.setAttribute("name", "accueil");
-	input.setAttribute("value", "none");
-
-	label.appendChild(input);
-	form.appendChild(label);
-	div.appendChild(form);
+	div.appendChild(lien_acc);
 }
 
 

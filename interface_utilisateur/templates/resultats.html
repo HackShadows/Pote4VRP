@@ -10,9 +10,7 @@
 
 <div id="barre-resultat">
 	<a id="tout-telecharger" href="resultats" download>Tout télécharger</a>
-	<form method="POST" action="/">
-		<label>Retour à l'Accueil<input type="submit" name="accueil" value="none"></label>
-	</form>
+	<a href="?redirect=accueil">Retour à l'Accueil</a>
 </div>
 
 
@@ -36,8 +34,8 @@
 				<td><span class="lien-mort">Télécharger</span></td>
 			{% elif tache.état == "SUCCES" %}
 				<td><div class="succes">Terminé avec succès</div></td>
-				<td><img src="resultats/{{ tache.id }}.svg" alt="résultat du traitement"></td>
-				<td><a href="resultats/{{ tache.id }}.vrp" download>Télécharger</a></td>
+				<td><img src="resultat/{{ tache.id }}.svg" alt="résultat du traitement"></td>
+				<td><a href="resultat/{{ tache.id }}.vrp" download>Télécharger</a></td>
 			{% else %}
 				<td><div class="erreur">Une erreur c'est produite</div></td>
 				<td><div class="message-erreur">{{ tache.message_erreur }}</div></td>

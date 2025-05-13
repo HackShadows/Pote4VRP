@@ -373,7 +373,7 @@ main {
 #tout-telecharger:.lien-morthover {
 	background-color: #A99;
 }
-#barre-resultat form {
+#barre-resultat a:last-child {
 	position: absolute;
 	top: 0;
 	left: 10px;
@@ -382,14 +382,8 @@ main {
 	border-radius: 10px;
 	background-color: #AAAA;
 }
-#barre-resultat form:hover {
+#barre-resultat a:last-child:hover {
 	background-color: #8888;
-}
-#barre-resultat form label {
-	display: contents;
-}
-#barre-resultat form label input {
-	display: none;
 }
 
 
@@ -398,15 +392,46 @@ main {
 
 #table-resultats {
 	border-spacing: 20px;
-	vertical-align: center;
+	vertical-align: middle;
 	text-align: center;
 }
-#table-resultats tr td {
-	padding: 0 .5rem;
-}
 #table-resultats td img {
+	position: relative;
 	width: 30vw;
+	border: solid black 3px;
+	border-radius: 10px;
+	margin-bottom: -50%;
+	box-shadow: 0 0 20px 0 black;
+	transition: translate ease-in-out .5s;
+}
+#table-resultats td img:hover {
+	translate: 0 -58%;
+	transition: translate ease-in-out .5s;
 }
 #table-resultats thead th {
 	border-bottom: solid black 3px;
+}
+
+
+
+.en-cours {
+	padding: 1.5rem 1rem;
+	border: #CCC solid 3px;
+	border-radius: 20px;
+	color: #444;
+	background-color: #DDD5;
+}
+.succes {
+	padding: 1.5rem 1rem;
+	border: #8F8 solid 3px;
+	border-radius: 20px;
+	color: #040;
+	background-color: #8F83;
+}
+.erreur {
+	padding: 1.5rem 1rem;
+	border: #F88 solid 3px;
+	border-radius: 20px;
+	color: #400;
+	background-color: #F885;
 }

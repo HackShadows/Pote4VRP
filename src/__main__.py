@@ -181,13 +181,43 @@ def main_dev() :
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
 
-	num = fichiers[0]
+	from sys import argv
+	fichier = argv[1]
 	
-	contrainte_capacite = False
+	contrainte_capacite = True
 	remplissage_initial = 0.5
-	contrainte_temps = False
+	contrainte_temps = True
 	
-	approximation_solution(f"data/in/data{num}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
+	approximation_solution(f"data/in/{fichier}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
+
+
+def créer_résultats() :
+	import json
+	résultats = dict()
+
+	for i in range(10, 211, 10) :
+		try :
+			lg0, lg1, it, ts = approximation_solution(f"data/in/test_{i}.vrp", CONSOLE, True, 0.5, True)
+		except KeyboardInterrupt :
+			print("k")
+		except Exception as e :
+			print("FAILED", i, e)
+			résultats[i] = {
+				"succes" : False,
+				"erreur" : repr(e),
+			}
+		else :
+			print("SUCCESS", i, it)
+			résultats[i] = {
+				"succes" : True,
+				"initial" : lg0,
+				"final" : lg1,
+				"iterations" : it,
+				"temps" : ts,
+			}
+	
+	with open("data/résultats_1_cap_temps/RESULT.json", "w") as file :
+		json.dump(résultats, file, indent='\t')
 
 
 
@@ -198,5 +228,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if True : main_dev()
+	if False : main_dev()
 	else : main()
