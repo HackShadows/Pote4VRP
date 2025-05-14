@@ -175,20 +175,17 @@ def fonction_traitement(nom_fichier :str, fichier_données :bytes) -> Optional[s
 
 
 def main_dev() :
-	"""La fonction main qui sera utilisé par les dévelepeurs"""
+	"""La fonction main qui sera utilisé par les dévelopeurs"""
 	fichiers = [101, 102, 111, 112, 201, 202, 1101, 1102, 1201, 1202]
 
 	# affichage = int(input("Affichage console (1), Affichage graphique (2), Affichage console détaillé (3), Affichage graphique détaillé (4) :\n"))
 	# for num in fichiers : approximation_solution(f"data/data{num}.vrp", affichage)
-
-	from sys import argv
-	fichier = argv[1]
 	
-	contrainte_capacite = True
+	contrainte_capacite = False
 	remplissage_initial = 0.5
-	contrainte_temps = True
+	contrainte_temps = False
 	
-	approximation_solution(f"data/in/{fichier}.vrp", CONSOLE, contrainte_capacite, remplissage_initial, contrainte_temps)
+	approximation_solution(f"data/in/data{101}.vrp", GRAPHIQUE, contrainte_capacite, remplissage_initial, contrainte_temps)
 
 
 def créer_résultats() :
@@ -228,5 +225,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if False : main_dev()
+	if True : main_dev()
 	else : main()

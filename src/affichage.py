@@ -85,7 +85,7 @@ def affichage_graphique(pos_clients :list[tuple[int, int]], flotte :Flotte, deta
 
 	# Création de l'animation
 	if not detail :
-		ani_container["ani"] = FuncAnimation(fig, update, frames=1000, interval=20, blit=True, repeat=False)
+		ani_container["ani"] = FuncAnimation(fig, update, frames=1000, interval=80, blit=True, repeat=False)
 
 	def start_animation(interval) :
 		"""Crée et démarre l'animation avec l'intervalle spécifié"""
