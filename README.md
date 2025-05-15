@@ -87,11 +87,11 @@ Fichiers relatif au projet
 --------------------------
 
 Vous pouvez retrouver tout les fichiers suivants dans le dossier `project-files`.
-[Présentation du projet](project-files/Peip2_projet_INFO4.pdf)
-[Cahier des charges](project-files/CC_DiagrammeGantt.pdf)
-[Diagramme de Gantt](project-files/DiagrammeGantt.pdf)
-[Rapport du projet](project-files/Rapport-POTE4-VRP.pdf)
-[Support de présentation pour la soutenance](project-files/Présentation_POTE4.pdf)
+- [Présentation du projet](project-files/Peip2_projet_INFO4.pdf)
+- [Cahier des charges](project-files/CC_DiagrammeGantt.pdf)
+- [Diagramme de Gantt](project-files/DiagrammeGantt.pdf)
+- [Rapport du projet](project-files/Rapport-POTE4-VRP.pdf)
+- [Support de présentation pour la soutenance](project-files/Présentation_POTE4.pdf)
 
 
 
