@@ -64,9 +64,9 @@ Documentation
 ### L’arborescence du projet
 ```
 pote4-vrp/
-├── CC_DiagrammeGantt.pdf     Le cahier des charges et diagramme de Gantt du projet
 ├── README.md                 Le fichier que vous lisez
 ├── data/                     Le dossier où sont stockés les fichiers de données de manière intermédiaire
+│   ├── analyse.py               Le fichier qui a permis de faire les mesures présentées dans le rapport
 │   ├── in/                      Les fichiers entrants
 │   └── out/                     Les fichiers sortants
 ├── interface_utilisateur/    Le site web (HTML, CSS, JS)
@@ -74,18 +74,24 @@ pote4-vrp/
 │   │   ├── css/                    Le CSS
 │   │   └── javascript/             Le JS
 │   └── templates/               Les templates HTML
+├── project-files/            Les fichiers relatifs au projet
 └── src/                      Le code source de l'application
-    ├── __main__.py           Le fichier principal qui lance l'application
+    ├── __main__.py              Le fichier principal qui lance l'application
     ├── ...
-    └── test/                 Le répertoire des tests
+    └── test/                    Le répertoire des tests
 ```
 
 
 
-Cahier des charges
-------------------
+Fichiers relatif au projet
+--------------------------
 
-[voir ici](CC_DiagrammeGantt.pdf)
+Vous pouvez retrouver tout les fichiers suivants dans le dossier `project-files`.
+[Présentation du projet](project-files/Peip2_projet_INFO4.pdf)
+[Cahier des charges](project-files/CC_DiagrammeGantt.pdf)
+[Diagramme de Gantt](project-files/DiagrammeGantt.pdf)
+[Rapport du projet](project-files/Rapport-POTE4-VRP.pdf)
+[Support de présentation pour la soutenance](project-files/Présentation_POTE4.pdf)
 
 
 
