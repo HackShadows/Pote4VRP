@@ -225,5 +225,5 @@ def main() :
 
 
 if __name__ == '__main__' :
-	if True : main_dev()
+	if False : main_dev()
 	else : main()

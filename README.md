@@ -1,97 +1,110 @@
-POTE4 VRP
-=========
+# POTE4 VRP - Optimiseur de Tournées de Livraison
 
-POTE4-vrp est une application permettant d'optimiser des trajets de livraison.
-L’application consiste d’un serveur python tournant en local et s’occupant de faire tourner des algorithmes sur les fichiers de données envoyés. L’interface client se fait à travers une page web dans un navigateur qui communique avec le serveur.
+![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
+![Matplotlib](https://img.shields.io/badge/Library-Matplotlib-orange.svg)
+![Jinja2](https://img.shields.io/badge/Template-Jinja2-green.svg)
+![Status](https://img.shields.io/badge/Status-Terminé-success.svg)
 
+![Aperçu de l'optimisation](images/solution_2.svg)
 
+**POTE4-vrp** est une application complète permettant d'optimiser des trajets de livraison (*Vehicle Routing Problem*).
 
-Installation
-------------
+L’application se compose d'un **serveur Python** local qui exécute des algorithmes méta-heuristiques (Relocate, Exchange, 2-Opt, Cross-Exchange) sur des fichiers de données `.vrp`. L’interface utilisateur est une **application web** moderne permettant de visualiser les trajets et les gains d'optimisation en temps réel.
 
-Pour installer, téléchargez ce dépôt ou vous le souhaitez sur votre ordinateur, là où vous le souhaitez, puis tapez la commande suivante dans un terminal :
+---
+
+## 🛠️ Installation
+
+### 1. Cloner le projet
+Téléchargez ce dépôt sur votre ordinateur et placez-vous dans le dossier :
 ```sh
 cd chemin/vers/pote4-vrp
 ```
-Il est nécessaire de créer un environnement virtuel Python pour lancer
-l'application. Cela peut se faire via la commande suivante (pour créer
-l'environnement dans le répertoire `.venv`) :
+
+### 2. Créer l'environnement virtuel
+
+Il est nécessaire de créer un environnement virtuel Python pour isoler les dépendances :
+
 ```sh
 python3 -m venv .vepote
 ```
-Pour activer cet environnement dans votre shell :
+
+### 3. Activer l'environnement
+* **Sous Linux / Mac :**
 ```sh
-source .vepote/bin/activate  # sous linux, macos
-.vepote\Scripts\activate  # sous windows
+source .vepote/bin/activate
 ```
-Il faut ensuite installer les dépendances du projet
+* **Sous Windows (PowerShell) :**
 ```sh
-# python3.11 -m ensurepip  # si pip non disponible avec python
-pip install --upgrade pip  # au moins la version 20.3 de pip
-pip install -r requirements.in
+.vepote\Scripts\Activate
 ```
 
-
-
-Utilisation
------------
-
-Pour lancer l’application, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que  l’environnement soit activé.
-Il suffit de taper la commande
+### 4. Installer les dépendances
 ```sh
+pip install --upgrade pip
+pip install -r requirements.txt
+```
+
+## 🚀 Utilisation
+
+1.  Assurez-vous que votre terminal est ouvert à la racine du projet et que l'environnement virtuel est activé (`(.vepote)` doit apparaître).
+2.  Lancez le serveur :
+
+```bash
 python3 src
 ```
-L’application devrait automatiquement s'ouvrir dans votre navigateur par défaut.
+L’application devrait s'ouvrir automatiquement dans votre navigateur par défaut (sinon, rendez-vous sur l'URL indiquée dans le terminal, généralement `http://localhost:8080`).
 
-Quand vous quittez l’application, **pensez à bien à l’arrêter** en tapant `^C` dans le terminal où elle s’exécute.
+Pour arrêter le serveur, tapez **Ctrl+C** dans le terminal.
 
+## 🧪 Tests
 
+Des tests unitaires sont disponibles pour vérifier le bon fonctionnement des classes et des opérateurs. Pour les lancer :
 
-Tests
------
-
-Pour lancer les tests, assurez vous que le terminal soit ouvert au niveau du répertoire de l’application (pote4-vrp), et assurez vous que l’environnement soit activé.
-Il suffit de taper la commande :
-```sh
-python3 -m unittest discover src
+```bash
+python3 -m unittest discover src/test
 ```
 
+## 📂 Documentation & Architecture
 
+### Arborescence du projet
 
-Documentation
--------------
-
-### L’arborescence du projet
-```
+```text
 pote4-vrp/
-├── README.md                 Le fichier que vous lisez
-├── data/                     Le dossier où sont stockés les fichiers de données de manière intermédiaire
-│   ├── analyse.py               Le fichier qui a permis de faire les mesures présentées dans le rapport
-│   ├── in/                      Les fichiers entrants
-│   └── out/                     Les fichiers sortants
-├── interface_utilisateur/    Le site web (HTML, CSS, JS)
-│   ├── static/                  Les fichiers statics
-│   │   ├── css/                    Le CSS
-│   │   └── javascript/             Le JS
-│   └── templates/               Les templates HTML
-├── project-files/            Les fichiers relatifs au projet
-└── src/                      Le code source de l'application
-    ├── __main__.py              Le fichier principal qui lance l'application
-    ├── ...
-    └── test/                    Le répertoire des tests
+├── README.md                 # Documentation principale
+├── requirements.txt          # Liste des dépendances
+├── data/                     # Gestion des données
+│   ├── analyse.py            # Scripts d'analyse statistique
+│   ├── in/                   # Dossier d'entrée pour les fichiers .vrp
+│   └── out/                  # Dossier de sortie (résultats générés)
+├── images/                   # Images pour le README et les rapports
+├── interface_utilisateur/    # Front-end de l'application
+│   ├── static/               # Assets (CSS, JS, Images)
+│   └── templates/            # Templates HTML (Jinja2)
+├── project-files/            # Rapports et présentations PDF
+└── src/                      # Code source Python (Back-end)
+    ├── affichage.py          # Génération des graphiques (Matplotlib)
+    ├── classes.py            # Définition des structures (Client, Trajet, Flotte)
+    ├── opérateurs.py         # Algorithmes d'optimisation (Heuristiques)
+    ├── serveur.py            # Gestion du serveur HTTP
+    └── ...
 ```
 
+### Documents du projet
 
+Vous pouvez retrouver tous les documents relatifs à la conception et au suivi du projet dans le dossier `project-files/` :
 
-Fichiers relatif au projet
---------------------------
+* 📄 **[Cahier des charges](project-files/CahierDesCharges.pdf)** : Définition des besoins et contraintes.
+* 📅 **[Diagramme de Gantt](project-files/DiagrammeGantt.pdf)** : Planification du développement.
+* 📊 **[Présentation du projet](project-files/Peip2_projet_INFO4.pdf)** : Support de présentation initial.
+* 📝 **[Rapport final](project-files/Rapport-POTE4-VRP.pdf)** : Analyse détaillée des algorithmes et résultats.
+* 🎓 **[Soutenance](project-files/Présentation_POTE4.pdf)** : Support de présentation final.
 
-Vous pouvez retrouver tout les fichiers suivants dans le dossier `project-files`.
-- [Présentation du projet](project-files/Peip2_projet_INFO4.pdf)
-- [Cahier des charges](project-files/CC_DiagrammeGantt.pdf)
-- [Diagramme de Gantt](project-files/DiagrammeGantt.pdf)
-- [Rapport du projet](project-files/Rapport-POTE4-VRP.pdf)
-- [Support de présentation pour la soutenance](project-files/Présentation_POTE4.pdf)
+---
 
+## 👥 Auteurs
 
+Projet réalisé dans le cadre du cursus PEIP2 à Polytech Lyon.
 
+* **Marius CISERANE**
+* **Matthias BOULLOT**

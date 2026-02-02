@@ -538,7 +538,7 @@ class TraitementRequêteVRP(BaseHTTPRequestHandler) :
 
 	def redirect_accueil(self) -> bool :
 		for file in os.listdir("data/out") :
-			if os.path.isfile(f"data/out/{file}") :
+			if os.path.isfile(f"data/out/{file}") and file != ".gitkeep":
 				os.unlink(f"data/out/{file}")
 		self.client.réinitialiser(Client.State.MAIN_PAGE)
 		return self.serve_main_page()
@@ -735,7 +735,7 @@ class ServeurVRP(ThreadingHTTPServer) :
 	                 , fonction_de_traitement :Callable[[str, IO[str]], tuple[str, Optional[str]]]) :
 
 		for file in os.listdir("data/out") :
-			if os.path.isfile(f"data/out/{file}") :
+			if os.path.isfile(f"data/out/{file}") and file != ".gitkeep":
 				os.unlink(f"data/out/{file}")
 
 		self.traitement    = fonction_de_traitement

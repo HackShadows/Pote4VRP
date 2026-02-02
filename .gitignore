@@ -1,6 +1,22 @@
-# Les fichiers dont les devs se servent mais qui devraient pas se retrouver dans le repo.
-**.swp
-**/.DS_Store
-**/__pycache__/
-data/out
-data/in
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+
+# Environnements virtuels
+.vepote/
+venv/
+env/
+.env
+
+# Données temporaires ou de sortie
+data/out/*
+!data/out/.gitkeep
+
+# IDEs
+.vscode/
+.idea/
+
+# Fichiers système
+.DS_Store
+Thumbs.db
