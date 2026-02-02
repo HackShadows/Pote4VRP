@@ -45,7 +45,7 @@ class TestClassClient(unittest.TestCase) :
 
 
 
-class TestTrajet(unittest.TestCase) :
+class TestTrajetSansContraintes(unittest.TestCase) :
 
 	def setUp(self) :
 		# Setup
@@ -62,6 +62,9 @@ class TestTrajet(unittest.TestCase) :
 		self.assertListEqual(self.trajet.clients    , []        )
 		self.assertIs       (self.trajet.depot      , self.depot)
 		self.assertEqual    (self.trajet.marchandise, 0         )
+		self.assertListEqual(self.trajet.horaires   , []        )
+		self.assertFalse    (self.trajet.contraintes["capacite"])
+		self.assertFalse    (self.trajet.contraintes["temps"]   )
 
 
 
@@ -130,7 +133,8 @@ class TestTrajet(unittest.TestCase) :
 		self.assertEqual      (self.trajet.nb_clients , 1         )
 		self.assertEqual      (self.trajet.clients[0] , client1   )
 		self.assertAlmostEqual(self.trajet.longueur   , 5.65685424)
-		self.assertEqual      (self.trajet.marchandise, 10        )
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , []        )
 
 		# Setup
 		client2 = NonCallableMock(Client)
@@ -142,7 +146,8 @@ class TestTrajet(unittest.TestCase) :
 		self.assertIs         (self.trajet.clients[0] , client1   )
 		self.assertIs         (self.trajet.clients[1] , client2   )
 		self.assertAlmostEqual(self.trajet.longueur   , 7.43397840)
-		self.assertEqual      (self.trajet.marchandise, 15        )
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , []        )
 
 
 
@@ -161,18 +166,284 @@ class TestTrajet(unittest.TestCase) :
 
 		self.assertEqual      (self.trajet.nb_clients , 2         )
 		self.assertAlmostEqual(self.trajet.longueur   ,10.31375520)
-		self.assertEqual      (self.trajet.marchandise,15         )
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , []        )
 
 		# Test
 		self.assertIs         (self.trajet.retirer_client(1), client2   )
 		self.assertEqual      (self.trajet.nb_clients       , 1         )
 		self.assertAlmostEqual(self.trajet.longueur         , 7.21110255)
-		self.assertEqual      (self.trajet.marchandise      ,10         )
+		self.assertEqual      (self.trajet.marchandise      , 0         )
+		self.assertListEqual  (self.trajet.horaires         , []        )
 
 		self.assertIs         (self.trajet.retirer_client(0), client1)
 		self.assertEqual      (self.trajet.nb_clients       , 0      )
 		self.assertAlmostEqual(self.trajet.longueur         , 0.     )
 		self.assertEqual      (self.trajet.marchandise      , 0      )
+		self.assertListEqual  (self.trajet.horaires         , []     )
+
+
+
+
+
+class TestTrajetContrainteCapacite(unittest.TestCase) :
+
+	def setUp(self) :
+		# Setup
+		self.depot = NonCallableMock(Client)
+		self.depot.pos = (-1, -1)
+		self.trajet = Trajet(self.depot, contrainte_capacite=True)
+
+
+
+	def test_init(self) :
+		# Test
+		self.assertEqual    (self.trajet.longueur   , 0.0       )
+		self.assertEqual    (self.trajet.nb_clients , 0         )
+		self.assertListEqual(self.trajet.clients    , []        )
+		self.assertIs       (self.trajet.depot      , self.depot)
+		self.assertEqual    (self.trajet.marchandise, 0         )
+		self.assertListEqual(self.trajet.horaires   , []        )
+		self.assertTrue     (self.trajet.contraintes["capacite"])
+		self.assertFalse    (self.trajet.contraintes["temps"]   )
+
+
+
+
+	def test_ajouter_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client1.pos = (1, 1); client1.demande = 10; client1.intervalle_livraison = (45, 58); client1.temps_livraison = 26
+		# Test
+		self.trajet.ajouter_client(0, client1)
+
+		self.assertEqual      (self.trajet.nb_clients , 1         )
+		self.assertEqual      (self.trajet.clients[0] , client1   )
+		self.assertAlmostEqual(self.trajet.longueur   , 5.65685424)
+		self.assertEqual      (self.trajet.marchandise, 10        )
+		self.assertListEqual  (self.trajet.horaires   , []        )
+
+		# Setup
+		client2 = NonCallableMock(Client)
+		client2.pos = (2, 1); client2.demande = 5; client2.intervalle_livraison = (24, 461); client2.temps_livraison = 1
+		# Test
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertIs         (self.trajet.clients[0] , client1   )
+		self.assertIs         (self.trajet.clients[1] , client2   )
+		self.assertAlmostEqual(self.trajet.longueur   , 7.43397840)
+		self.assertEqual      (self.trajet.marchandise, 15        )
+		self.assertListEqual  (self.trajet.horaires   , []        )
+
+
+
+	def test_retirer_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client2 = NonCallableMock(Client)
+		client1.pos     = (1, 2); client2.pos     = (3, 1)
+		client1.demande = 10    ; client2.demande = 5
+		client1.intervalle_livraison = (8, 9)
+		client2.intervalle_livraison = (10, 100)
+		client1.temps_livraison = 21; client2.temps_livraison = 22
+
+		self.trajet.ajouter_client(0, client1)
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertAlmostEqual(self.trajet.longueur   ,10.31375520)
+		self.assertEqual      (self.trajet.marchandise, 15        )
+		self.assertListEqual  (self.trajet.horaires   , []        )
+
+		# Test
+		self.assertIs         (self.trajet.retirer_client(1), client2   )
+		self.assertEqual      (self.trajet.nb_clients       , 1         )
+		self.assertAlmostEqual(self.trajet.longueur         , 7.21110255)
+		self.assertEqual      (self.trajet.marchandise      , 10        )
+		self.assertListEqual  (self.trajet.horaires         , []        )
+
+		self.assertIs         (self.trajet.retirer_client(0), client1)
+		self.assertEqual      (self.trajet.nb_clients       , 0      )
+		self.assertAlmostEqual(self.trajet.longueur         , 0.     )
+		self.assertEqual      (self.trajet.marchandise      , 0      )
+		self.assertListEqual  (self.trajet.horaires         , []     )
+
+
+
+
+
+class TestTrajetContrainteTemps(unittest.TestCase) :
+
+	def setUp(self) :
+		# Setup
+		self.depot = NonCallableMock(Client)
+		self.depot.pos = (-1, -1)
+		self.depot.intervalle_livraison = (0, 100)
+		self.trajet = Trajet(self.depot, contrainte_temps=True)
+
+
+
+	def test_init(self) :
+		# Test
+		self.assertEqual    (self.trajet.longueur   , 0.0       )
+		self.assertEqual    (self.trajet.nb_clients , 0         )
+		self.assertListEqual(self.trajet.clients    , []        )
+		self.assertIs       (self.trajet.depot      , self.depot)
+		self.assertEqual    (self.trajet.marchandise, 0         )
+		self.assertListEqual(self.trajet.horaires   , []        )
+		self.assertFalse    (self.trajet.contraintes["capacite"])
+		self.assertTrue     (self.trajet.contraintes["temps"]   )
+
+
+
+
+	def test_ajouter_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client1.pos = (1, 1); client1.demande = 10; client1.intervalle_livraison = (45, 58); client1.temps_livraison = 26
+		# Test
+		self.trajet.ajouter_client(0, client1)
+
+		self.assertEqual      (self.trajet.nb_clients , 1         )
+		self.assertEqual      (self.trajet.clients[0] , client1   )
+		self.assertAlmostEqual(self.trajet.longueur   , 5.65685424)
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , [71]      )
+
+		# Setup
+		client2 = NonCallableMock(Client)
+		client2.pos = (2, 1); client2.demande = 5; client2.intervalle_livraison = (24, 461); client2.temps_livraison = 1
+		# Test
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertIs         (self.trajet.clients[0] , client1   )
+		self.assertIs         (self.trajet.clients[1] , client2   )
+		self.assertAlmostEqual(self.trajet.longueur   , 7.43397840)
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , [71, 72]  )
+
+
+
+	def test_retirer_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client2 = NonCallableMock(Client)
+		client1.pos     = (1, 2); client2.pos     = (3, 1)
+		client1.demande = 10    ; client2.demande = 5
+		client1.intervalle_livraison = (8, 9)
+		client2.intervalle_livraison = (10, 100)
+		client1.temps_livraison = 21; client2.temps_livraison = 22
+
+		self.trajet.ajouter_client(0, client1)
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertAlmostEqual(self.trajet.longueur   ,10.31375520)
+		self.assertEqual      (self.trajet.marchandise, 0         )
+		self.assertListEqual  (self.trajet.horaires   , [29, 51]  )
+
+		# Test
+		self.assertIs         (self.trajet.retirer_client(1), client2   )
+		self.assertEqual      (self.trajet.nb_clients       , 1         )
+		self.assertAlmostEqual(self.trajet.longueur         , 7.21110255)
+		self.assertEqual      (self.trajet.marchandise      , 0         )
+		self.assertListEqual  (self.trajet.horaires         , [29]      )
+
+		self.assertIs         (self.trajet.retirer_client(0), client1)
+		self.assertEqual      (self.trajet.nb_clients       , 0      )
+		self.assertAlmostEqual(self.trajet.longueur         , 0.     )
+		self.assertEqual      (self.trajet.marchandise      , 0      )
+		self.assertListEqual  (self.trajet.horaires         , []     )
+
+
+
+
+
+class TestTrajetContraintesTempsCapacite(unittest.TestCase) :
+
+	def setUp(self) :
+		# Setup
+		self.depot = NonCallableMock(Client)
+		self.depot.pos = (-1, -1)
+		self.depot.intervalle_livraison = (0, 100)
+		self.trajet = Trajet(self.depot, contrainte_capacite=True, contrainte_temps=True)
+
+
+
+	def test_init(self) :
+		# Test
+		self.assertEqual    (self.trajet.longueur   , 0.0       )
+		self.assertEqual    (self.trajet.nb_clients , 0         )
+		self.assertListEqual(self.trajet.clients    , []        )
+		self.assertIs       (self.trajet.depot      , self.depot)
+		self.assertEqual    (self.trajet.marchandise, 0         )
+		self.assertListEqual(self.trajet.horaires   , []        )
+		self.assertTrue     (self.trajet.contraintes["capacite"])
+		self.assertTrue     (self.trajet.contraintes["temps"]   )
+
+
+
+
+	def test_ajouter_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client1.pos = (1, 1); client1.demande = 10; client1.intervalle_livraison = (45, 58); client1.temps_livraison = 26
+		# Test
+		self.trajet.ajouter_client(0, client1)
+
+		self.assertEqual      (self.trajet.nb_clients , 1         )
+		self.assertEqual      (self.trajet.clients[0] , client1   )
+		self.assertAlmostEqual(self.trajet.longueur   , 5.65685424)
+		self.assertEqual      (self.trajet.marchandise, 10        )
+		self.assertListEqual  (self.trajet.horaires   , [71]      )
+
+		# Setup
+		client2 = NonCallableMock(Client)
+		client2.pos = (2, 1); client2.demande = 5; client2.intervalle_livraison = (24, 461); client2.temps_livraison = 1
+		# Test
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertIs         (self.trajet.clients[0] , client1   )
+		self.assertIs         (self.trajet.clients[1] , client2   )
+		self.assertAlmostEqual(self.trajet.longueur   , 7.43397840)
+		self.assertEqual      (self.trajet.marchandise, 15        )
+		self.assertListEqual  (self.trajet.horaires   , [71, 72]  )
+
+
+
+	def test_retirer_client(self) :
+		# Setup
+		client1 = NonCallableMock(Client)
+		client2 = NonCallableMock(Client)
+		client1.pos     = (1, 2); client2.pos     = (3, 1)
+		client1.demande = 10    ; client2.demande = 5
+		client1.intervalle_livraison = (8, 9)
+		client2.intervalle_livraison = (10, 100)
+		client1.temps_livraison = 21; client2.temps_livraison = 22
+
+		self.trajet.ajouter_client(0, client1)
+		self.trajet.ajouter_client(1, client2)
+
+		self.assertEqual      (self.trajet.nb_clients , 2         )
+		self.assertAlmostEqual(self.trajet.longueur   ,10.31375520)
+		self.assertEqual      (self.trajet.marchandise, 15        )
+		self.assertListEqual  (self.trajet.horaires   , [29, 51]  )
+
+		# Test
+		self.assertIs         (self.trajet.retirer_client(1), client2   )
+		self.assertEqual      (self.trajet.nb_clients       , 1         )
+		self.assertAlmostEqual(self.trajet.longueur         , 7.21110255)
+		self.assertEqual      (self.trajet.marchandise      , 10        )
+		self.assertListEqual  (self.trajet.horaires         , [29]      )
+
+		self.assertIs         (self.trajet.retirer_client(0), client1)
+		self.assertEqual      (self.trajet.nb_clients       , 0      )
+		self.assertAlmostEqual(self.trajet.longueur         , 0.     )
+		self.assertEqual      (self.trajet.marchandise      , 0      )
+		self.assertListEqual  (self.trajet.horaires         , []     )
 
 
 

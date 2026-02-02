@@ -365,7 +365,7 @@ class Trajet :
 		modifie : bool
 			True pour effectuer les modifications, False sinon.
 		liste_clients : list[Client]|None
-			Liste des clients en ajouter si connue, None sinon.
+			Liste des clients à ajouter si connue, None sinon.
 		horaires : list[int]|None
 			Liste des horaires si connue, None sinon.
 
@@ -402,9 +402,11 @@ class Trajet :
 			if precedent > cli.intervalle_livraison[1]: return False
 			new_horaires.append(max(precedent, cli.intervalle_livraison[0]) + cli.temps_livraison)
 		
+		if new_horaires[-1] > self.depot.intervalle_livraison[1]: return False
+
 		if modifie: self.horaires = new_horaires.copy()
 		
-		return new_horaires[-1] <= self.depot.intervalle_livraison[1]
+		return True
 
 
 

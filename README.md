@@ -62,7 +62,7 @@ Pour arrêter le serveur, tapez **Ctrl+C** dans le terminal.
 Des tests unitaires sont disponibles pour vérifier le bon fonctionnement des classes et des opérateurs. Pour les lancer :
 
 ```bash
-python3 -m unittest discover src/test
+python3 -m unittest discover src
 ```
 
 ## 📂 Documentation & Architecture
