@@ -72,6 +72,7 @@ python3 -m unittest discover src
 ```text
 pote4-vrp/
 ├── README.md                 # Documentation principale
+├── LICENSE                   # Licence MIT du projet
 ├── requirements.txt          # Liste des dépendances
 ├── data/                     # Gestion des données
 │   ├── analyse.py            # Scripts d'analyse statistique
