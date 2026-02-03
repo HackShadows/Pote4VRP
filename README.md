@@ -3,6 +3,7 @@
 ![Python](https://img.shields.io/badge/Python-3.11+-blue.svg)
 ![Matplotlib](https://img.shields.io/badge/Library-Matplotlib-orange.svg)
 ![Jinja2](https://img.shields.io/badge/Template-Jinja2-green.svg)
+![License](https://img.shields.io/badge/license-MIT-lightgrey.svg)
 ![Status](https://img.shields.io/badge/Status-Terminé-success.svg)
 
 ![Aperçu de l'optimisation](images/solution_2.svg)
